@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowBack, Send, SmartToy, MoreVert, Refresh, Delete, AttachFile, Image, EmojiEmotions, Close } from '@mui/icons-material';
+import { ArrowBack, Send, SmartToy, MoreVert, Refresh, Delete, AttachFile, EmojiEmotions, Close } from '@mui/icons-material';
 import { useNavigation } from '../contexts/NavigationContext';
 import { geminiService } from '../services/geminiService';
 
@@ -17,7 +17,6 @@ const AICoachChatPage: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showImagePreview, setShowImagePreview] = useState(false);
@@ -112,25 +111,6 @@ const AICoachChatPage: React.FC = () => {
     }
   };
 
-  const handleImageSend = () => {
-    if (selectedImage && newMessage.trim()) {
-      const userMessage: Message = {
-        id: Date.now().toString(),
-        text: newMessage,
-        isUser: true,
-        timestamp: new Date(),
-        imageUrl: selectedImage,
-        type: 'mixed'
-      };
-      setMessages(prev => [...prev, userMessage]);
-      setNewMessage('');
-      setSelectedImage(null);
-      setShowImagePreview(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
-  };
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() && !selectedImage) return;
@@ -206,12 +186,6 @@ const AICoachChatPage: React.FC = () => {
     }, 100);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
 
   return (
     <div className="w-full h-full flex flex-col bg-white">
