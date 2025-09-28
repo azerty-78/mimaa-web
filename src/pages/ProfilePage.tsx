@@ -1,76 +1,434 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Edit, Person, Email, Phone, LocationOn, CameraAlt, Save, Close } from '@mui/icons-material';
+import { useAuth } from '../hooks/useAuth';
 
 const ProfilePage: React.FC = () => {
+  const { user, updateProfile } = useAuth();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [formData, setFormData] = useState({
+    username: user?.username || '',
+    email: user?.email || '',
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
+    phone: user?.phone || '',
+    region: user?.region || '',
+    profileImage: null as File | null
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Vérifier la taille du fichier (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('La taille de l\'image ne doit pas dépasser 5MB');
+        return;
+      }
+      
+      // Vérifier le type de fichier
+      if (!file.type.startsWith('image/')) {
+        setError('Veuillez sélectionner un fichier image valide');
+        return;
+      }
+      
+      setFormData(prev => ({
+        ...prev,
+        profileImage: file
+      }));
+      setError('');
+    }
+  };
+
+  const handleEditClick = () => {
+    setFormData({
+      username: user?.username || '',
+      email: user?.email || '',
+      firstName: user?.firstName || '',
+      lastName: user?.lastName || '',
+      phone: user?.phone || '',
+      region: user?.region || '',
+      profileImage: null
+    });
+    setError('');
+    setIsEditModalOpen(true);
+  };
+
+  const handleSave = async () => {
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      // Convertir l'image en base64 si elle existe
+      let profileImageBase64 = user?.profileImage || null;
+      if (formData.profileImage) {
+        profileImageBase64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(formData.profileImage!);
+        });
+      }
+      
+      const updatedData = {
+        username: formData.username,
+        email: formData.email,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phone: formData.phone,
+        region: formData.region,
+        profileImage: profileImageBase64,
+      };
+      
+      await updateProfile(updatedData);
+      setIsEditModalOpen(false);
+    } catch (error) {
+      setError('Erreur lors de la mise à jour du profil');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getProfileTypeLabel = (profileType: string) => {
+    switch (profileType) {
+      case 'pregnant_woman':
+        return 'Femme enceinte';
+      case 'doctor':
+        return 'Médecin';
+      case 'administrator':
+        return 'Administrateur';
+      default:
+        return 'Utilisateur';
+    }
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word.charAt(0))
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  if (!user) {
+    return (
+      <div className="w-full p-3 sm:p-4 min-h-full flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Chargement du profil...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full p-3 sm:p-4 min-h-full">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex flex-col items-center text-center">
-            <div className="w-20 h-20 flex items-center justify-center mb-4">
-              <span className="text-gray-800 text-2xl font-bold">BD</span>
+      {/* Header du profil */}
+      <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg p-6 mb-6 text-white">
+        <div className="flex flex-col items-center text-center">
+          <div className="relative mb-4">
+            <div className="w-24 h-24 flex items-center justify-center rounded-full overflow-hidden bg-white/20 border-4 border-white/30">
+              {user.profileImage ? (
+                <img 
+                  src={user.profileImage} 
+                  alt={`Photo de profil de ${user.username}`}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-white text-2xl font-bold">
+                  {getInitials(user.username)}
+                </span>
+              )}
             </div>
-            <h2 className="text-xl font-bold text-gray-800 mb-1">Ben Djibril</h2>
-            <p className="text-gray-500 text-sm mb-4">Utilisateur actif</p>
-            <button className="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium">
-              Modifier le profil
-            </button>
+            <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-white rounded-full flex items-center justify-center">
+              <div className="w-6 h-6 bg-green-500 rounded-full"></div>
+            </div>
+          </div>
+          <h2 className="text-2xl font-bold mb-1">{user.username}</h2>
+          <p className="text-blue-100 text-sm mb-4">{getProfileTypeLabel(user.profileType)}</p>
+          <button 
+            onClick={handleEditClick}
+            className="bg-white/20 backdrop-blur-sm text-white px-6 py-2 rounded-full text-sm font-medium hover:bg-white/30 transition-colors flex items-center space-x-2"
+          >
+            <Edit className="w-4 h-4" />
+            <span>Modifier le profil</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Informations personnelles */}
+      <div className="space-y-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
+          <h3 className="font-semibold text-gray-800 mb-4 flex items-center">
+            <Person className="w-5 h-5 mr-2 text-blue-500" />
+            Informations personnelles
+          </h3>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center py-2">
+              <span className="text-gray-600 flex items-center">
+                <Email className="w-4 h-4 mr-2" />
+                Email
+              </span>
+              <span className="text-gray-800 font-medium">{user.email}</span>
+            </div>
+            <div className="flex justify-between items-center py-2">
+              <span className="text-gray-600 flex items-center">
+                <Person className="w-4 h-4 mr-2" />
+                Nom complet
+              </span>
+              <span className="text-gray-800 font-medium">
+                {user.firstName} {user.lastName}
+              </span>
+            </div>
+            <div className="flex justify-between items-center py-2">
+              <span className="text-gray-600 flex items-center">
+                <Phone className="w-4 h-4 mr-2" />
+                Téléphone
+              </span>
+              <span className="text-gray-800 font-medium">{user.phone || 'Non renseigné'}</span>
+            </div>
+            <div className="flex justify-between items-center py-2">
+              <span className="text-gray-600 flex items-center">
+                <LocationOn className="w-4 h-4 mr-2" />
+                Région
+              </span>
+              <span className="text-gray-800 font-medium">{user.region || 'Non renseignée'}</span>
+            </div>
           </div>
         </div>
 
-        <div className="space-y-4">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <h3 className="font-semibold text-gray-800 mb-3">Informations personnelles</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Nom complet</span>
-                <span className="text-gray-800">Ben Djibril</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Email</span>
-                <span className="text-gray-800">ben.djibril@example.com</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Téléphone</span>
-                <span className="text-gray-800">+237 6XX XX XX XX</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Région</span>
-                <span className="text-gray-800">Extrême-Nord</span>
-              </div>
+        {/* Statistiques */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
+          <h3 className="font-semibold text-gray-800 mb-4">Statistiques</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="text-center p-4 bg-blue-50 rounded-xl">
+              <p className="text-3xl font-bold text-blue-500">0</p>
+              <p className="text-sm text-gray-600">Campagnes suivies</p>
+            </div>
+            <div className="text-center p-4 bg-green-50 rounded-xl">
+              <p className="text-3xl font-bold text-green-500">0</p>
+              <p className="text-sm text-gray-600">Messages reçus</p>
             </div>
           </div>
+        </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <h3 className="font-semibold text-gray-800 mb-3">Statistiques</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center">
-                <p className="text-2xl font-bold text-blue-500">24</p>
-                <p className="text-sm text-gray-500">Campagnes suivies</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-green-500">156</p>
-                <p className="text-sm text-gray-500">Messages reçus</p>
+        {/* Préférences */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
+          <h3 className="font-semibold text-gray-800 mb-4">Préférences</h3>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600">Notifications de santé</span>
+              <div className="w-12 h-6 bg-blue-500 rounded-full relative cursor-pointer">
+                <div className="w-5 h-5 bg-white rounded-full absolute right-0.5 top-0.5 transition-transform"></div>
               </div>
             </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <h3 className="font-semibold text-gray-800 mb-3">Préférences</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Notifications de santé</span>
-                <div className="w-12 h-6 bg-blue-500 rounded-full relative">
-                  <div className="w-5 h-5 bg-white rounded-full absolute right-0.5 top-0.5"></div>
-                </div>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Alertes d'urgence</span>
-                <div className="w-12 h-6 bg-blue-500 rounded-full relative">
-                  <div className="w-5 h-5 bg-white rounded-full absolute right-0.5 top-0.5"></div>
-                </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600">Alertes d'urgence</span>
+              <div className="w-12 h-6 bg-blue-500 rounded-full relative cursor-pointer">
+                <div className="w-5 h-5 bg-white rounded-full absolute right-0.5 top-0.5 transition-transform"></div>
               </div>
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Bottom Sheet de modification */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-end justify-center z-50">
+          <div className="bg-white rounded-t-3xl w-full max-w-md max-h-[90vh] overflow-hidden">
+            {/* Header du bottom sheet */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-800">Modifier le profil</h3>
+              <button
+                onClick={() => setIsEditModalOpen(false)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <Close className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+
+            {/* Contenu du formulaire */}
+            <div className="p-4 space-y-4 overflow-y-auto max-h-[70vh]">
+              {/* Message d'erreur */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
+
+              {/* Photo de profil */}
+              <div className="text-center">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Photo de profil
+                </label>
+                <div className="relative inline-block">
+                  <div className="w-20 h-20 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden">
+                    {formData.profileImage ? (
+                      <img
+                        src={URL.createObjectURL(formData.profileImage)}
+                        alt="Photo de profil"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : user.profileImage ? (
+                      <img
+                        src={user.profileImage}
+                        alt="Photo de profil actuelle"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <CameraAlt className="h-8 w-8 text-gray-400" />
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              {/* Nom d'utilisateur */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nom d'utilisateur
+                </label>
+                <input
+                  type="text"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Votre nom d'utilisateur"
+                  required
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Adresse email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="votre@email.com"
+                  required
+                />
+              </div>
+
+              {/* Prénom */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Prénom
+                </label>
+                <input
+                  type="text"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Votre prénom"
+                />
+              </div>
+
+              {/* Nom de famille */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nom de famille
+                </label>
+                <input
+                  type="text"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Votre nom de famille"
+                />
+              </div>
+
+              {/* Téléphone */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Téléphone
+                </label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="+237 6XX XX XX XX"
+                />
+              </div>
+
+              {/* Région */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Région
+                </label>
+                <select
+                  name="region"
+                  value={formData.region}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Sélectionnez votre région</option>
+                  <option value="Adamaoua">Adamaoua</option>
+                  <option value="Centre">Centre</option>
+                  <option value="Est">Est</option>
+                  <option value="Extrême-Nord">Extrême-Nord</option>
+                  <option value="Littoral">Littoral</option>
+                  <option value="Nord">Nord</option>
+                  <option value="Nord-Ouest">Nord-Ouest</option>
+                  <option value="Ouest">Ouest</option>
+                  <option value="Sud">Sud</option>
+                  <option value="Sud-Ouest">Sud-Ouest</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Boutons d'action */}
+            <div className="p-4 border-t border-gray-200 flex space-x-3">
+              <button
+                onClick={() => setIsEditModalOpen(false)}
+                className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={isLoading}
+                className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Sauvegarde...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    <span>Sauvegarder</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
