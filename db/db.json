@@ -1,0 +1,89 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "email": "bendjibril789@gmail.com",
+      "password": "Admin1234!",
+      "profileType": "administrator",
+      "profileImage": null,
+      "firstName": "Admin",
+      "lastName": "System",
+      "phone": "+237 6XX XX XX XX",
+      "region": "Yaoundé",
+      "isActive": true,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    }
+  ],
+  "campaigns": [
+    {
+      "id": 1,
+      "title": "JOURNÉES NATIONALES DE VACCINATION DE RIPOSTE À L'ÉPIDÉMIE DE POLIOMYÉLITE",
+      "description": "Campagne de vaccination pour les enfants de 0 à 5 ans",
+      "startDate": "2025-05-29T00:00:00.000Z",
+      "endDate": "2025-06-01T23:59:59.000Z",
+      "status": "active",
+      "targetAudience": "Enfants de 0 à 5 ans",
+      "location": "Tout le Cameroun",
+      "organizer": "Ministère de la Santé",
+      "imageUrl": "/api/placeholder/400/200",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "title": "Campagne de santé centre Pasteur",
+      "description": "Sensibilisation sur les bonnes pratiques de santé",
+      "startDate": "2024-12-01T00:00:00.000Z",
+      "endDate": "2024-12-31T23:59:59.000Z",
+      "status": "completed",
+      "targetAudience": "Tous publics",
+      "location": "Centre Pasteur, Yaoundé",
+      "organizer": "Centre Pasteur",
+      "imageUrl": "/api/placeholder/400/200",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    }
+  ],
+  "communities": [
+    {
+      "id": 1,
+      "name": "Centre Médical",
+      "description": "Communauté des professionnels de santé",
+      "memberCount": 2456,
+      "category": "healthcare",
+      "isPublic": true,
+      "createdAt": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "name": "Patients & Familles",
+      "description": "Communauté dédiée aux patients et leurs familles",
+      "memberCount": 5678,
+      "category": "patients",
+      "isPublic": true,
+      "createdAt": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": 3,
+      "name": "Événements",
+      "description": "Découvrez et participez aux événements de santé",
+      "memberCount": 123,
+      "category": "events",
+      "isPublic": true,
+      "createdAt": "2024-01-01T00:00:00.000Z"
+    }
+  ],
+  "notifications": [
+    {
+      "id": 1,
+      "userId": 1,
+      "title": "Nouvelle campagne de vaccination",
+      "message": "Une nouvelle campagne de vaccination a été lancée dans votre région",
+      "type": "campaign",
+      "isRead": false,
+      "createdAt": "2024-01-01T00:00:00.000Z"
+    }
+  ]
+}
