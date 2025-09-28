@@ -43,6 +43,20 @@ const AICoachChatPage: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
+  // Fermer le menu quand on clique à l'extérieur
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showMenu && !(event.target as Element).closest('.menu-container')) {
+        setShowMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showMenu]);
+
   // Fonctions pour le menu
   const handleMenuToggle = () => {
     setShowMenu(!showMenu);
@@ -221,7 +235,7 @@ const AICoachChatPage: React.FC = () => {
             <p className="text-xs text-blue-100">En ligne</p>
           </div>
         </div>
-        <div className="relative">
+        <div className="relative menu-container">
           <button 
             onClick={handleMenuToggle}
             className="p-2 hover:bg-blue-700 rounded-full transition-colors"
@@ -356,24 +370,98 @@ const AICoachChatPage: React.FC = () => {
       </div>
 
       {/* Input */}
-      <div className="border-t border-gray-200 p-4">
-        <div className="flex items-center space-x-2">
+      <div className="border-t border-gray-200 p-4 bg-white">
+        {/* Aperçu de l'image sélectionnée */}
+        {showImagePreview && selectedImage && (
+          <div className="mb-3 relative">
+            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-gray-600 font-medium">Image sélectionnée</span>
+                <button
+                  onClick={handleImageRemove}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <Close className="w-4 h-4" />
+                </button>
+              </div>
+              <img
+                src={selectedImage}
+                alt="Aperçu"
+                className="w-full h-32 object-cover rounded-lg"
+              />
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-end space-x-2">
+          {/* Bouton d'ajout d'image */}
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+            title="Ajouter une image"
+          >
+            <AttachFile className="w-5 h-5" />
+          </button>
+          
+          {/* Input caché pour les fichiers */}
           <input
-            type="text"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Tapez votre message..."
-            className="flex-1 px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageSelect}
+            className="hidden"
           />
+
+          {/* Zone de texte */}
+          <div className="flex-1 relative">
+            <textarea
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
+              placeholder="Tapez votre message..."
+              className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none min-h-[48px] max-h-32"
+              rows={1}
+              style={{
+                minHeight: '48px',
+                maxHeight: '128px'
+              }}
+            />
+            
+            {/* Bouton emoji (placeholder pour future fonctionnalité) */}
+            <button
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              title="Emojis (bientôt disponible)"
+            >
+              <EmojiEmotions className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Bouton d'envoi */}
           <button
             onClick={handleSendMessage}
-            disabled={!newMessage.trim() || isTyping}
-            className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            disabled={(!newMessage.trim() && !selectedImage) || isTyping}
+            className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none"
           >
-            <Send className="w-5 h-5" />
+            {isTyping ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+              <Send className="w-5 h-5" />
+            )}
           </button>
         </div>
+
+        {/* Indicateur de statut */}
+        {isTyping && (
+          <div className="mt-2 flex items-center space-x-2 text-sm text-gray-500">
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+            <span>Le coach IA réfléchit...</span>
+          </div>
+        )}
       </div>
     </div>
   );
