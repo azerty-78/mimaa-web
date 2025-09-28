@@ -8,6 +8,9 @@ import SettingsPage from '../pages/SettingsPage';
 import ProfilePage from '../pages/ProfilePage';
 import SignInPage from '../pages/SignInPage';
 import SignUpPage from '../pages/SignUpPage';
+import AICoachChatPage from '../pages/AICoachChatPage';
+import DoctorChatPage from '../pages/DoctorChatPage';
+import CommunityChatPage from '../pages/CommunityChatPage';
 import { useNavigation } from '../contexts/NavigationContext';
 import { useAuth } from '../hooks/useAuth';
 
@@ -47,6 +50,12 @@ const MainLayout: React.FC = () => {
         return <SignInPage />;
       case 'signup':
         return <SignUpPage />;
+      case 'chat-ai-coach':
+        return <AICoachChatPage />;
+      case 'chat-doctor':
+        return <DoctorChatPage />;
+      case 'chat-community':
+        return <CommunityChatPage />;
       default:
         return <HomePage />;
     }
@@ -64,10 +73,11 @@ const MainLayout: React.FC = () => {
     );
   }
 
-  // Pages sans barres (connexion/inscription)
+  // Pages sans barres (connexion/inscription/chat)
   const isAuthPage = activeTab === 'signin' || activeTab === 'signup';
+  const isChatPage = activeTab.startsWith('chat-');
 
-  if (isAuthPage) {
+  if (isAuthPage || isChatPage) {
     return (
       <div className="h-screen w-full bg-gray-100">
         {renderPage()}

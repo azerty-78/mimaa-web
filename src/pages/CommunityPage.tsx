@@ -1,13 +1,17 @@
 import React from 'react';
-import { CalendarToday, Phone, Search, PersonAdd, Psychology, LocalHospital, Favorite } from '@mui/icons-material';
-import { useAuth } from '../hooks/useAuth';
+import { CalendarToday, Phone, Search, PersonAdd, LocalHospital, Favorite, SmartToy } from '@mui/icons-material';
+import { useNavigation } from '../contexts/NavigationContext';
 
 const CommunityPage: React.FC = () => {
-  const { user } = useAuth();
+  const { navigateTo } = useNavigation();
+
+  const handleChatClick = (chatType: string) => {
+    navigateTo(`chat-${chatType}`);
+  };
 
   return (
-    <div className="w-full p-3 sm:p-4 min-h-full bg-gray-50">
-      <div className="space-y-6">
+    <div className="w-full min-h-full bg-gray-50">
+      <div className="px-4 py-6 space-y-6">
         {/* Bannière de bienvenue */}
         <div className="bg-blue-50 rounded-2xl p-6 text-center">
           <h1 className="text-2xl font-bold text-blue-900 mb-2" style={{ fontFamily: 'cursive' }}>
@@ -42,24 +46,30 @@ const CommunityPage: React.FC = () => {
           <h2 className="text-lg font-bold text-gray-900 mb-4">Options de chat</h2>
           <div className="space-y-4">
             {/* Coach IA Nutritionnel */}
-            <div className="bg-blue-50 rounded-2xl p-4 flex items-center space-x-4">
+            <button 
+              onClick={() => handleChatClick('ai-coach')}
+              className="w-full bg-blue-50 rounded-2xl p-4 flex items-center space-x-4 hover:bg-blue-100 transition-colors"
+            >
               <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
-                <Psychology className="w-6 h-6 text-white" />
+                <SmartToy className="w-6 h-6 text-white" />
               </div>
-              <div className="flex-1">
+              <div className="flex-1 text-left">
                 <h3 className="font-bold text-gray-900 text-base">Coach IA Nutritionnel</h3>
                 <p className="text-sm text-gray-600">
                   Conseils personnalisés et suivi alimentaire 24/7
                 </p>
               </div>
-            </div>
+            </button>
 
             {/* Médecin Traitant */}
-            <div className="bg-blue-50 rounded-2xl p-4 flex items-center space-x-4 relative">
+            <button 
+              onClick={() => handleChatClick('doctor')}
+              className="w-full bg-blue-50 rounded-2xl p-4 flex items-center space-x-4 relative hover:bg-blue-100 transition-colors"
+            >
               <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
                 <LocalHospital className="w-6 h-6 text-white" />
               </div>
-              <div className="flex-1">
+              <div className="flex-1 text-left">
                 <h3 className="font-bold text-gray-900 text-base">Médecin Traitant</h3>
                 <p className="text-sm text-gray-600">
                   Consultations et suivi médical personnalisé
@@ -69,27 +79,38 @@ const CommunityPage: React.FC = () => {
               <div className="absolute top-3 right-3 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
                 <span className="text-white text-xs font-bold">2</span>
               </div>
-            </div>
+            </button>
 
             {/* Communauté MealMate */}
-            <div className="bg-pink-50 rounded-2xl p-4 flex items-center space-x-4 relative">
+            <button 
+              onClick={() => handleChatClick('community')}
+              className="w-full bg-pink-50 rounded-2xl p-4 flex items-center space-x-4 relative hover:bg-pink-100 transition-colors"
+            >
               <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center">
                 <Favorite className="w-6 h-6 text-white" />
               </div>
-              <div className="flex-1">
+              <div className="flex-1 text-left">
                 <h3 className="font-bold text-gray-900 text-base">Communauté MealMate</h3>
                 <p className="text-sm text-gray-600">
                   Échangez avec d'autres membres de communauté
                 </p>
               </div>
               {/* Bouton d'action flottant */}
-              <button className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center shadow-lg hover:bg-blue-700 transition-colors">
+              <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center shadow-lg">
                 <PersonAdd className="w-6 h-6 text-white" />
-              </button>
-            </div>
+              </div>
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Floating Action Button pour l'IA */}
+      <button 
+        onClick={() => handleChatClick('ai-coach')}
+        className="fixed bottom-20 right-4 w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center shadow-lg hover:bg-blue-700 transition-colors z-40"
+      >
+        <SmartToy className="w-7 h-7 text-white" />
+      </button>
     </div>
   );
 };
