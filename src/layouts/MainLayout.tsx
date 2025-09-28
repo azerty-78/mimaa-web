@@ -1,20 +1,22 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense, lazy, memo } from 'react';
 import TopBar from '../components/TopBar';
 import BottomBar from '../components/BottomBar';
-import HomePage from '../pages/HomePage';
-import DashboardPage from '../pages/DashboardPage';
-import CommunityPage from '../pages/CommunityPage';
-import SettingsPage from '../pages/SettingsPage';
-import ProfilePage from '../pages/ProfilePage';
-import SignInPage from '../pages/SignInPage';
-import SignUpPage from '../pages/SignUpPage';
-import AICoachChatPage from '../pages/AICoachChatPage';
-import DoctorChatPage from '../pages/DoctorChatPage';
-import CommunityChatPage from '../pages/CommunityChatPage';
 import { useNavigation } from '../contexts/NavigationContext';
 import { useAuth } from '../hooks/useAuth';
 
-const MainLayout: React.FC = () => {
+// Lazy loading des pages pour optimiser les performances
+const HomePage = lazy(() => import('../pages/HomePage'));
+const DashboardPage = lazy(() => import('../pages/DashboardPage'));
+const CommunityPage = lazy(() => import('../pages/CommunityPage'));
+const SettingsPage = lazy(() => import('../pages/SettingsPage'));
+const ProfilePage = lazy(() => import('../pages/ProfilePage'));
+const SignInPage = lazy(() => import('../pages/SignInPage'));
+const SignUpPage = lazy(() => import('../pages/SignUpPage'));
+const AICoachChatPage = lazy(() => import('../pages/AICoachChatPage'));
+const DoctorChatPage = lazy(() => import('../pages/DoctorChatPage'));
+const CommunityChatPage = lazy(() => import('../pages/CommunityChatPage'));
+
+const MainLayout: React.FC = memo(() => {
   const { activeTab, navigateTo, navigateToSignIn } = useNavigation();
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -35,29 +37,80 @@ const MainLayout: React.FC = () => {
 
   const renderPage = () => {
     console.log('Rendu de la page:', activeTab);
+    
+    const LoadingSpinner = () => (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+
     switch (activeTab) {
       case 'home':
-        return <HomePage />;
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <HomePage />
+          </Suspense>
+        );
       case 'dashboard':
-        return <DashboardPage />;
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <DashboardPage />
+          </Suspense>
+        );
       case 'community':
-        return <CommunityPage />;
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <CommunityPage />
+          </Suspense>
+        );
       case 'settings':
-        return <SettingsPage />;
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <SettingsPage />
+          </Suspense>
+        );
       case 'profile':
-        return <ProfilePage />;
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <ProfilePage />
+          </Suspense>
+        );
       case 'signin':
-        return <SignInPage />;
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <SignInPage />
+          </Suspense>
+        );
       case 'signup':
-        return <SignUpPage />;
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <SignUpPage />
+          </Suspense>
+        );
       case 'chat-ai-coach':
-        return <AICoachChatPage />;
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <AICoachChatPage />
+          </Suspense>
+        );
       case 'chat-doctor':
-        return <DoctorChatPage />;
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <DoctorChatPage />
+          </Suspense>
+        );
       case 'chat-community':
-        return <CommunityChatPage />;
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <CommunityChatPage />
+          </Suspense>
+        );
       default:
-        return <HomePage />;
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <HomePage />
+          </Suspense>
+        );
     }
   };
 
@@ -94,7 +147,9 @@ const MainLayout: React.FC = () => {
       
       {/* Contenu principal - Scroll uniquement ici */}
       <main className="flex-1 overflow-y-auto overflow-x-hidden pt-16 pb-16 m-0 p-0">
-        {renderPage()}
+        <div className="page-enter-active">
+          {renderPage()}
+        </div>
       </main>
       
       {/* BottomBar - Fixe en bas */}
@@ -103,7 +158,9 @@ const MainLayout: React.FC = () => {
       </div>
     </div>
   );
-};
+});
+
+MainLayout.displayName = 'MainLayout';
 
 export default MainLayout;
 
