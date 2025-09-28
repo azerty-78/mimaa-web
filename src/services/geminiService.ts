@@ -40,7 +40,13 @@ export class GeminiService {
       });
 
       if (!response.ok) {
-        throw new Error(`Erreur API Gemini: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Erreur API Gemini:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData
+        });
+        throw new Error(`Erreur API Gemini: ${response.status} - ${response.statusText}`);
       }
 
       const data: GeminiResponse = await response.json();

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowBack, Send, SmartToy, MoreVert } from '@mui/icons-material';
+import { ArrowBack, Send, SmartToy, MoreVert, Refresh, Delete, AttachFile, Image, EmojiEmotions, Close } from '@mui/icons-material';
 import { useNavigation } from '../contexts/NavigationContext';
 import { geminiService } from '../services/geminiService';
 
@@ -8,6 +8,8 @@ interface Message {
   text: string;
   isUser: boolean;
   timestamp: Date;
+  imageUrl?: string;
+  type?: 'text' | 'image' | 'mixed';
 }
 
 const AICoachChatPage: React.FC = () => {
@@ -16,14 +18,21 @@ const AICoachChatPage: React.FC = () => {
   const [newMessage, setNewMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [showImagePreview, setShowImagePreview] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const suggestedQuestions = [
-    "Comment créer un plan alimentaire équilibré?",
-    "Quels sont les aliments riches en protéines?",
-    "Comment gérer les fringales?",
-    "Conseils pour une alimentation végétarienne",
-    "Comment calculer mes besoins caloriques?"
+    "Quels aliments éviter pendant la grossesse?",
+    "Comment gérer les nausées matinales?",
+    "Quels suppléments prendre pendant la grossesse?",
+    "Comment bien s'alimenter au 1er trimestre?",
+    "Quels sont les besoins en fer pendant la grossesse?",
+    "Comment prévenir le diabète gestationnel?",
+    "Quels aliments pour le développement du cerveau du bébé?",
+    "Comment gérer les envies de grossesse de manière saine?"
   ];
 
   const scrollToBottom = () => {
@@ -34,26 +43,124 @@ const AICoachChatPage: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
+  // Fonctions pour le menu
+  const handleMenuToggle = () => {
+    setShowMenu(!showMenu);
+  };
+
+  const handleResetChat = () => {
+    setMessages([]);
+    setShowMenu(false);
+  };
+
+  const handleExportChat = () => {
+    const chatData = {
+      messages: messages.map(msg => ({
+        text: msg.text,
+        isUser: msg.isUser,
+        timestamp: msg.timestamp.toISOString(),
+        type: msg.type || 'text'
+      })),
+      exportDate: new Date().toISOString()
+    };
+    
+    const blob = new Blob([JSON.stringify(chatData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `chat-export-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setShowMenu(false);
+  };
+
+  // Fonctions pour les images
+  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imageUrl = e.target?.result as string;
+        setSelectedImage(imageUrl);
+        setShowImagePreview(true);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleImageRemove = () => {
+    setSelectedImage(null);
+    setShowImagePreview(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleImageSend = () => {
+    if (selectedImage && newMessage.trim()) {
+      const userMessage: Message = {
+        id: Date.now().toString(),
+        text: newMessage,
+        isUser: true,
+        timestamp: new Date(),
+        imageUrl: selectedImage,
+        type: 'mixed'
+      };
+      setMessages(prev => [...prev, userMessage]);
+      setNewMessage('');
+      setSelectedImage(null);
+      setShowImagePreview(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   const handleSendMessage = async () => {
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() && !selectedImage) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       text: newMessage,
       isUser: true,
-      timestamp: new Date()
+      timestamp: new Date(),
+      imageUrl: selectedImage || undefined,
+      type: selectedImage ? (newMessage.trim() ? 'mixed' : 'image') : 'text'
     };
 
     setMessages(prev => [...prev, userMessage]);
     setNewMessage('');
+    setSelectedImage(null);
+    setShowImagePreview(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
     setIsTyping(true);
 
     try {
       // Utiliser l'API Gemini pour générer une réponse
       const aiResponse = await geminiService.generateContent(
-        `Tu es un coach IA médical spécialisé pour les femmes enceintes. Réponds de manière professionnelle et bienveillante à cette question: "${newMessage}". 
-        Donne des conseils médicaux adaptés à la grossesse, en restant dans le domaine de la nutrition et du bien-être. 
-        Si la question n'est pas médicale, redirige poliment vers des sujets liés à la grossesse et la nutrition.`
+        `Tu es un coach nutritionnel spécialisé pour les femmes enceintes. Tu es bienveillant, professionnel et rassurant. 
+        
+        Réponds à cette question: "${newMessage}"
+        
+        Contexte: Tu accompagnes des femmes enceintes dans leur parcours nutritionnel. Tu peux donner des conseils sur:
+        - L'alimentation équilibrée pendant la grossesse
+        - Les suppléments recommandés (acide folique, fer, etc.)
+        - La gestion des nausées, vomissements, brûlures d'estomac
+        - Les aliments à éviter ou à privilégier
+        - La prise de poids recommandée
+        - Le diabète gestationnel et sa prévention
+        - Les besoins nutritionnels par trimestre
+        
+        IMPORTANT: 
+        - Reste dans le domaine de la nutrition et du bien-être
+        - Recommande toujours de consulter un professionnel de santé pour les questions médicales
+        - Sois rassurant et positif
+        - Adapte tes conseils selon le trimestre si mentionné
+        - Si la question n'est pas liée à la grossesse/nutrition, redirige poliment vers ces sujets`
       );
 
       const aiMessage: Message = {
@@ -114,9 +221,41 @@ const AICoachChatPage: React.FC = () => {
             <p className="text-xs text-blue-100">En ligne</p>
           </div>
         </div>
-        <button className="p-2 hover:bg-blue-700 rounded-full transition-colors">
-          <MoreVert className="w-5 h-5" />
-        </button>
+        <div className="relative">
+          <button 
+            onClick={handleMenuToggle}
+            className="p-2 hover:bg-blue-700 rounded-full transition-colors"
+          >
+            <MoreVert className="w-5 h-5" />
+          </button>
+          
+          {showMenu && (
+            <div className="absolute right-0 top-12 bg-white rounded-lg shadow-lg border border-gray-200 py-2 min-w-48 z-50">
+              <button
+                onClick={handleResetChat}
+                className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center space-x-2 text-gray-700"
+              >
+                <Refresh className="w-4 h-4" />
+                <span>Nouveau chat</span>
+              </button>
+              <button
+                onClick={handleExportChat}
+                className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center space-x-2 text-gray-700"
+              >
+                <Delete className="w-4 h-4" />
+                <span>Exporter le chat</span>
+              </button>
+              <div className="border-t border-gray-200 my-1"></div>
+              <button
+                onClick={() => setShowMenu(false)}
+                className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center space-x-2 text-gray-700"
+              >
+                <Close className="w-4 h-4" />
+                <span>Fermer</span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Contenu principal */}
@@ -137,7 +276,8 @@ const AICoachChatPage: React.FC = () => {
               Bienvenue chez votre Coach AI !
             </h2>
             <p className="text-gray-600 mb-8 text-sm" style={{ fontFamily: 'cursive' }}>
-              Je suis là pour vous aider avec vos questions sur la nutrition, l'alimentation saine et le bien-être.
+              Je suis votre coach nutritionnel spécialisé pour accompagner les femmes enceintes. 
+              Je peux vous conseiller sur l'alimentation, les suppléments, la gestion des symptômes et le bien-être pendant votre grossesse.
             </p>
 
             {/* Questions suggérées */}
@@ -160,17 +300,35 @@ const AICoachChatPage: React.FC = () => {
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
+                className={`flex ${message.isUser ? 'justify-end' : 'justify-start'} mb-4`}
               >
                 <div
-                  className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
+                  className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${
                     message.isUser
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-800'
+                      ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
+                      : 'bg-gradient-to-r from-gray-50 to-gray-100 text-gray-800 border border-gray-200'
                   }`}
                 >
-                  <p className="text-sm">{message.text}</p>
-                  <p className="text-xs opacity-70 mt-1">
+                  {/* Image dans le message */}
+                  {message.imageUrl && (
+                    <div className="mb-2">
+                      <img
+                        src={message.imageUrl}
+                        alt="Image partagée"
+                        className="w-full h-48 object-cover rounded-lg"
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Texte du message */}
+                  {message.text && (
+                    <p className="text-sm leading-relaxed">{message.text}</p>
+                  )}
+                  
+                  {/* Timestamp */}
+                  <p className={`text-xs mt-2 ${
+                    message.isUser ? 'text-blue-100' : 'text-gray-500'
+                  }`}>
                     {message.timestamp.toLocaleTimeString('fr-FR', {
                       hour: '2-digit',
                       minute: '2-digit'
