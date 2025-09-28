@@ -1,4 +1,16 @@
-const API_BASE_URL = 'http://localhost:3001';
+// Détection automatique de l'URL de l'API
+const getApiBaseUrl = () => {
+  // En développement local ou sur ngrok, utiliser le proxy Vite
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:3001';
+  }
+  
+  // Sur ngrok, utiliser le proxy Vite qui redirige vers localhost:3001
+  // Le proxy Vite transforme /api/users en localhost:3001/users
+  return '/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Types pour TypeScript
 export interface User {
@@ -64,15 +76,19 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   };
 
   try {
+    console.log('Making API request to:', url);
     const response = await fetch(url, config);
     
     if (!response.ok) {
+      console.error('API request failed:', response.status, response.statusText);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
     return await response.json();
   } catch (error) {
     console.error('API request failed:', error);
+    console.error('Request URL:', url);
+    console.error('Request config:', config);
     throw error;
   }
 }

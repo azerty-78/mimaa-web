@@ -13,6 +13,14 @@ export default defineConfig({
       '.ngrok.io',
       '.ngrok-free.app',
       '.ngrok.app'
-    ]
+    ],
+    // Proxy pour l'API backend
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    }
   }
 })
