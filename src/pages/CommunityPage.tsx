@@ -45,7 +45,7 @@ const CommunityPage: React.FC = () => {
         <div>
           <h2 className="text-lg font-bold text-gray-900 mb-4">Options de chat</h2>
           <div className="space-y-4">
-            {/* Coach IA Nutritionnel */}
+            {/* Coach IA Médical */}
             <button 
               onClick={() => handleChatClick('ai-coach')}
               className="w-full bg-blue-50 rounded-2xl p-4 flex items-center space-x-4 hover:bg-blue-100 transition-colors"
@@ -54,9 +54,9 @@ const CommunityPage: React.FC = () => {
                 <SmartToy className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1 text-left">
-                <h3 className="font-bold text-gray-900 text-base">Coach IA Nutritionnel</h3>
+                <h3 className="font-bold text-gray-900 text-base">Coach IA Médical</h3>
                 <p className="text-sm text-gray-600">
-                  Conseils personnalisés et suivi alimentaire 24/7
+                  Conseils médicaux personnalisés pour femmes enceintes 24/7
                 </p>
               </div>
             </button>
@@ -81,7 +81,7 @@ const CommunityPage: React.FC = () => {
               </div>
             </button>
 
-            {/* Communauté MealMate */}
+            {/* Communauté MIMAA */}
             <button 
               onClick={() => handleChatClick('community')}
               className="w-full bg-pink-50 rounded-2xl p-4 flex items-center space-x-4 hover:bg-pink-100 transition-colors"
@@ -90,7 +90,7 @@ const CommunityPage: React.FC = () => {
                 <Favorite className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1 text-left">
-                <h3 className="font-bold text-gray-900 text-base">Communauté MealMate</h3>
+                <h3 className="font-bold text-gray-900 text-base">Communauté MIMAA</h3>
                 <p className="text-sm text-gray-600">
                   Échangez avec d'autres membres de communauté
                 </p>
