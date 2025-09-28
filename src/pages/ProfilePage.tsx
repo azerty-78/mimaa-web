@@ -257,7 +257,7 @@ const ProfilePage: React.FC = () => {
             </div>
 
             {/* Contenu du formulaire */}
-            <div className="p-4 space-y-4 overflow-y-auto max-h-[70vh]">
+            <div className="p-4 space-y-4 overflow-y-auto max-h-[60vh]">
               {/* Message d'erreur */}
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">

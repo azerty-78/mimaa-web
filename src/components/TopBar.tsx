@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Search, Notifications, Person, Settings, Logout, Close } from '@mui/icons-material';
+import { Search, Notifications, Person, Settings, Logout, Close, Home, Dashboard, Group, ChevronRight } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
+import { useNavigation } from '../contexts/NavigationContext';
 
 interface TopBarProps {
   onLogout?: () => void;
@@ -11,6 +12,7 @@ const TopBar: React.FC<TopBarProps> = ({
 }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { user, logout } = useAuth();
+  const { navigateTo } = useNavigation();
 
   const handleProfileClick = () => {
     setIsProfileOpen(true);
@@ -25,6 +27,11 @@ const TopBar: React.FC<TopBarProps> = ({
     if (onLogout) {
       onLogout();
     }
+    setIsProfileOpen(false);
+  };
+
+  const handleNavigation = (page: string) => {
+    navigateTo(page);
     setIsProfileOpen(false);
   };
 
@@ -98,26 +105,80 @@ const TopBar: React.FC<TopBarProps> = ({
               </div>
             </div>
 
-            {/* Options */}
-            <div className="p-4 space-y-2">
-              <button className="w-full flex items-center space-x-3 p-3 hover:opacity-80 transition-opacity">
-                <Person className="w-5 h-5 text-gray-600" />
-                <span className="text-gray-800 font-medium">Mon profil</span>
-              </button>
+            {/* Options de navigation */}
+            <div className="p-4 space-y-1">
+              {/* Navigation principale */}
+              <div className="space-y-1">
+                <button 
+                  onClick={() => handleNavigation('home')}
+                  className="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors group"
+                >
+                  <div className="flex items-center space-x-3">
+                    <Home className="w-5 h-5 text-gray-600 group-hover:text-blue-600" />
+                    <span className="text-gray-800 font-medium">Accueil</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-400" />
+                </button>
+                
+                <button 
+                  onClick={() => handleNavigation('dashboard')}
+                  className="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors group"
+                >
+                  <div className="flex items-center space-x-3">
+                    <Dashboard className="w-5 h-5 text-gray-600 group-hover:text-blue-600" />
+                    <span className="text-gray-800 font-medium">Tableau de bord</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-400" />
+                </button>
+                
+                <button 
+                  onClick={() => handleNavigation('community')}
+                  className="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors group"
+                >
+                  <div className="flex items-center space-x-3">
+                    <Group className="w-5 h-5 text-gray-600 group-hover:text-blue-600" />
+                    <span className="text-gray-800 font-medium">Communauté</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-400" />
+                </button>
+              </div>
               
-              <button className="w-full flex items-center space-x-3 p-3 hover:opacity-80 transition-opacity">
-                <Settings className="w-5 h-5 text-gray-600" />
-                <span className="text-gray-800 font-medium">Paramètres</span>
-              </button>
+              <div className="border-t border-gray-200 my-3"></div>
               
-              <div className="border-t border-gray-200 my-2"></div>
+              {/* Options de profil */}
+              <div className="space-y-1">
+                <button 
+                  onClick={() => handleNavigation('profile')}
+                  className="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors group"
+                >
+                  <div className="flex items-center space-x-3">
+                    <Person className="w-5 h-5 text-gray-600 group-hover:text-blue-600" />
+                    <span className="text-gray-800 font-medium">Mon profil</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-400" />
+                </button>
+                
+                <button 
+                  onClick={() => handleNavigation('settings')}
+                  className="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors group"
+                >
+                  <div className="flex items-center space-x-3">
+                    <Settings className="w-5 h-5 text-gray-600 group-hover:text-blue-600" />
+                    <span className="text-gray-800 font-medium">Paramètres</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-400" />
+                </button>
+              </div>
               
+              <div className="border-t border-gray-200 my-3"></div>
+              
+              {/* Déconnexion */}
               <button 
                 onClick={handleLogout}
-                className="w-full flex items-center space-x-3 p-3 hover:opacity-80 transition-opacity text-red-600"
+                className="w-full flex items-center space-x-3 p-3 hover:bg-red-50 rounded-lg transition-colors group"
               >
-                <Logout className="w-5 h-5" />
-                <span className="font-medium">Se déconnecter</span>
+                <Logout className="w-5 h-5 text-red-600" />
+                <span className="text-red-600 font-medium">Se déconnecter</span>
               </button>
             </div>
           </div>
