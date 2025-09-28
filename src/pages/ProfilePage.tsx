@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { Edit, Person, Email, Phone, LocationOn, CameraAlt, Save, Close } from '@mui/icons-material';
+import React, { useState, memo, useEffect } from 'react';
+import { Edit, Person, Email, Phone, LocationOn, CameraAlt, Save, Close, Verified, TrendingUp, Message, Campaign } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
 
-const ProfilePage: React.FC = () => {
+const ProfilePage: React.FC = memo(() => {
   const { user, updateProfile } = useAuth();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     username: user?.username || '',
@@ -16,6 +17,10 @@ const ProfilePage: React.FC = () => {
     region: user?.region || '',
     profileImage: null as File | null
   });
+
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -119,6 +124,12 @@ const ProfilePage: React.FC = () => {
       .slice(0, 2);
   };
 
+  const stats = [
+    { icon: Campaign, label: 'Campagnes suivies', value: '12', color: 'from-blue-500 to-blue-600', bgColor: 'bg-blue-50' },
+    { icon: Message, label: 'Messages reçus', value: '45', color: 'from-green-500 to-green-600', bgColor: 'bg-green-50' },
+    { icon: TrendingUp, label: 'Engagement', value: '89%', color: 'from-purple-500 to-purple-600', bgColor: 'bg-purple-50' }
+  ];
+
   if (!user) {
     return (
       <div className="w-full p-3 sm:p-4 min-h-full flex items-center justify-center">
@@ -132,11 +143,13 @@ const ProfilePage: React.FC = () => {
 
   return (
     <div className="w-full p-3 sm:p-4 min-h-full">
-      {/* Header du profil */}
-      <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg p-6 mb-6 text-white">
+      {/* Header du profil avec animation */}
+      <div className={`bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl shadow-xl p-6 mb-6 text-white ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+      } transition-all duration-700`}>
         <div className="flex flex-col items-center text-center">
           <div className="relative mb-4">
-            <div className="w-24 h-24 flex items-center justify-center rounded-full overflow-hidden bg-white/20 border-4 border-white/30">
+            <div className="w-24 h-24 flex items-center justify-center rounded-full overflow-hidden bg-white/20 border-4 border-white/30 shadow-lg">
               {user.profileImage ? (
                 <img 
                   src={user.profileImage} 
@@ -149,20 +162,44 @@ const ProfilePage: React.FC = () => {
                 </span>
               )}
             </div>
-            <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-white rounded-full flex items-center justify-center">
-              <div className="w-6 h-6 bg-green-500 rounded-full"></div>
+            <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg">
+              <div className="w-6 h-6 bg-green-500 rounded-full animate-pulse"></div>
             </div>
           </div>
           <h2 className="text-2xl font-bold mb-1">{user.username}</h2>
-          <p className="text-blue-100 text-sm mb-4">{getProfileTypeLabel(user.profileType)}</p>
+          <div className="flex items-center space-x-2 mb-4">
+            <p className="text-blue-100 text-sm">{getProfileTypeLabel(user.profileType)}</p>
+            <Verified className="w-4 h-4 text-blue-200" />
+          </div>
           <button 
             onClick={handleEditClick}
-            className="bg-white/20 backdrop-blur-sm text-white px-6 py-2 rounded-full text-sm font-medium hover:bg-white/30 transition-colors flex items-center space-x-2"
+            className="bg-white/20 backdrop-blur-sm text-white px-6 py-2 rounded-full text-sm font-medium hover:bg-white/30 transition-all duration-200 flex items-center space-x-2 hover:scale-105"
           >
             <Edit className="w-4 h-4" />
             <span>Modifier le profil</span>
           </button>
         </div>
+      </div>
+
+      {/* Statistiques avec animations */}
+      <div className={`grid grid-cols-3 gap-4 mb-6 ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+      } transition-all duration-700`} style={{ animationDelay: '200ms' }}>
+        {stats.map((stat, index) => {
+          const Icon = stat.icon;
+          return (
+            <div
+              key={stat.label}
+              className="bg-white rounded-xl shadow-lg p-4 text-center hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+            >
+              <div className={`p-3 rounded-lg ${stat.bgColor} mb-2`}>
+                <Icon className={`w-6 h-6 ${stat.color.replace('from-', 'text-').replace(' to-', '')}`} />
+              </div>
+              <p className="text-2xl font-bold text-gray-800">{stat.value}</p>
+              <p className="text-xs text-gray-600">{stat.label}</p>
+            </div>
+          );
+        })}
       </div>
 
       {/* Informations personnelles */}
