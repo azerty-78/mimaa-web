@@ -1,5 +1,5 @@
 import React from 'react';
-import { CalendarToday, Phone, Search, PersonAdd, LocalHospital, Favorite, SmartToy } from '@mui/icons-material';
+import { CalendarToday, Phone, Search, LocalHospital, Favorite, SmartToy } from '@mui/icons-material';
 import { useNavigation } from '../contexts/NavigationContext';
 
 const CommunityPage: React.FC = () => {
@@ -11,7 +11,7 @@ const CommunityPage: React.FC = () => {
 
   return (
     <div className="w-full min-h-full bg-gray-50">
-      <div className="px-4 py-6 space-y-6">
+      <div className="px-4 py-4 space-y-6">
         {/* Bannière de bienvenue */}
         <div className="bg-blue-50 rounded-2xl p-6 text-center">
           <h1 className="text-2xl font-bold text-blue-900 mb-2" style={{ fontFamily: 'cursive' }}>
@@ -84,7 +84,7 @@ const CommunityPage: React.FC = () => {
             {/* Communauté MealMate */}
             <button 
               onClick={() => handleChatClick('community')}
-              className="w-full bg-pink-50 rounded-2xl p-4 flex items-center space-x-4 relative hover:bg-pink-100 transition-colors"
+              className="w-full bg-pink-50 rounded-2xl p-4 flex items-center space-x-4 hover:bg-pink-100 transition-colors"
             >
               <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center">
                 <Favorite className="w-6 h-6 text-white" />
@@ -94,10 +94,6 @@ const CommunityPage: React.FC = () => {
                 <p className="text-sm text-gray-600">
                   Échangez avec d'autres membres de communauté
                 </p>
-              </div>
-              {/* Bouton d'action flottant */}
-              <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center shadow-lg">
-                <PersonAdd className="w-6 h-6 text-white" />
               </div>
             </button>
           </div>
