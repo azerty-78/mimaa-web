@@ -14,6 +14,36 @@
       "isActive": true,
       "createdAt": "2024-01-01T00:00:00.000Z",
       "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "username": "Marie Hélène",
+      "email": "marie.helene@example.com",
+      "password": "user1234",
+      "profileType": "pregnant_woman",
+      "profileImage": null,
+      "firstName": "Marie",
+      "lastName": "Hélène",
+      "phone": "+237 6XX XX XX XX",
+      "region": "Centre",
+      "isActive": true,
+      "createdAt": "2024-01-15T10:30:00.000Z",
+      "updatedAt": "2024-01-15T10:30:00.000Z"
+    },
+    {
+      "id": 3,
+      "username": "Dr Djeff Djadi Leteta",
+      "email": "dr.djeff.leteta@example.com",
+      "password": "user1234",
+      "profileType": "doctor",
+      "profileImage": null,
+      "firstName": "Djeff",
+      "lastName": "Djadi Leteta",
+      "phone": "+237 6XX XX XX XX",
+      "region": "Littoral",
+      "isActive": true,
+      "createdAt": "2024-01-15T11:00:00.000Z",
+      "updatedAt": "2024-01-15T11:00:00.000Z"
     }
   ],
   "campaigns": [
