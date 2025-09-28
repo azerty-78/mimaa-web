@@ -1,5 +1,5 @@
 import React, { memo, useState, useEffect } from 'react';
-import { Notifications, AccountCircle, Security, Palette, Language, DarkMode, LightMode, ChevronRight, ToggleOn, ToggleOff } from '@mui/icons-material';
+import { Notifications, AccountCircle, Security, Palette, ChevronRight } from '@mui/icons-material';
 
 const SettingsPage: React.FC = memo(() => {
   const [isVisible, setIsVisible] = useState(false);

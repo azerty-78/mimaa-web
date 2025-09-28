@@ -185,7 +185,7 @@ const ProfilePage: React.FC = memo(() => {
       <div className={`grid grid-cols-3 gap-4 mb-6 ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
       } transition-all duration-700`} style={{ animationDelay: '200ms' }}>
-        {stats.map((stat, index) => {
+        {stats.map((stat) => {
           const Icon = stat.icon;
           return (
             <div
@@ -204,20 +204,22 @@ const ProfilePage: React.FC = memo(() => {
 
       {/* Informations personnelles */}
       <div className="space-y-4">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
+        <div className={`bg-white rounded-2xl shadow-lg border border-gray-100 p-5 ${
+          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+        } transition-all duration-700`} style={{ animationDelay: '400ms' }}>
           <h3 className="font-semibold text-gray-800 mb-4 flex items-center">
             <Person className="w-5 h-5 mr-2 text-blue-500" />
             Informations personnelles
           </h3>
           <div className="space-y-4">
-            <div className="flex justify-between items-center py-2">
+            <div className="flex justify-between items-center py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors">
               <span className="text-gray-600 flex items-center">
                 <Email className="w-4 h-4 mr-2" />
                 Email
               </span>
               <span className="text-gray-800 font-medium">{user.email}</span>
             </div>
-            <div className="flex justify-between items-center py-2">
+            <div className="flex justify-between items-center py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors">
               <span className="text-gray-600 flex items-center">
                 <Person className="w-4 h-4 mr-2" />
                 Nom complet
@@ -226,14 +228,14 @@ const ProfilePage: React.FC = memo(() => {
                 {user.firstName} {user.lastName}
               </span>
             </div>
-            <div className="flex justify-between items-center py-2">
+            <div className="flex justify-between items-center py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors">
               <span className="text-gray-600 flex items-center">
                 <Phone className="w-4 h-4 mr-2" />
                 Téléphone
               </span>
               <span className="text-gray-800 font-medium">{user.phone || 'Non renseigné'}</span>
             </div>
-            <div className="flex justify-between items-center py-2">
+            <div className="flex justify-between items-center py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors">
               <span className="text-gray-600 flex items-center">
                 <LocationOn className="w-4 h-4 mr-2" />
                 Région
@@ -243,34 +245,27 @@ const ProfilePage: React.FC = memo(() => {
           </div>
         </div>
 
-        {/* Statistiques */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
-          <h3 className="font-semibold text-gray-800 mb-4">Statistiques</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="text-center p-4 bg-blue-50 rounded-xl">
-              <p className="text-3xl font-bold text-blue-500">0</p>
-              <p className="text-sm text-gray-600">Campagnes suivies</p>
-            </div>
-            <div className="text-center p-4 bg-green-50 rounded-xl">
-              <p className="text-3xl font-bold text-green-500">0</p>
-              <p className="text-sm text-gray-600">Messages reçus</p>
-            </div>
-          </div>
-        </div>
-
         {/* Préférences */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
+        <div className={`bg-white rounded-2xl shadow-lg border border-gray-100 p-5 ${
+          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+        } transition-all duration-700`} style={{ animationDelay: '600ms' }}>
           <h3 className="font-semibold text-gray-800 mb-4">Préférences</h3>
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Notifications de santé</span>
-              <div className="w-12 h-6 bg-blue-500 rounded-full relative cursor-pointer">
+            <div className="flex justify-between items-center py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors">
+              <div>
+                <span className="text-gray-800 font-medium">Notifications de santé</span>
+                <p className="text-sm text-gray-600">Recevez des alertes importantes</p>
+              </div>
+              <div className="w-12 h-6 bg-blue-500 rounded-full relative cursor-pointer hover:bg-blue-600 transition-colors">
                 <div className="w-5 h-5 bg-white rounded-full absolute right-0.5 top-0.5 transition-transform"></div>
               </div>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Alertes d'urgence</span>
-              <div className="w-12 h-6 bg-blue-500 rounded-full relative cursor-pointer">
+            <div className="flex justify-between items-center py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors">
+              <div>
+                <span className="text-gray-800 font-medium">Alertes d'urgence</span>
+                <p className="text-sm text-gray-600">Notifications critiques</p>
+              </div>
+              <div className="w-12 h-6 bg-blue-500 rounded-full relative cursor-pointer hover:bg-blue-600 transition-colors">
                 <div className="w-5 h-5 bg-white rounded-full absolute right-0.5 top-0.5 transition-transform"></div>
               </div>
             </div>
@@ -280,8 +275,8 @@ const ProfilePage: React.FC = memo(() => {
 
       {/* Bottom Sheet de modification */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-end justify-center z-50">
-          <div className="bg-white rounded-t-3xl w-full max-w-md max-h-[90vh] overflow-hidden">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end justify-center z-50 animate-in fade-in duration-200">
+          <div className="bg-white rounded-t-3xl w-full max-w-md max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom duration-300">
             {/* Header du bottom sheet */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-800">Modifier le profil</h3>
@@ -468,7 +463,9 @@ const ProfilePage: React.FC = memo(() => {
       )}
     </div>
   );
-};
+});
+
+ProfilePage.displayName = 'ProfilePage';
 
 export default ProfilePage;
 

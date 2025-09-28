@@ -1,5 +1,5 @@
 import React, { memo, useState, useEffect } from 'react';
-import { CalendarToday, Phone, Search, LocalHospital, Favorite, SmartToy, Notifications, TrendingUp, People, Message } from '@mui/icons-material';
+import { CalendarToday, Phone, Search, LocalHospital, Favorite, SmartToy, TrendingUp, People, Message } from '@mui/icons-material';
 import { useNavigation } from '../contexts/NavigationContext';
 
 const CommunityPage: React.FC = memo(() => {
@@ -73,7 +73,7 @@ const CommunityPage: React.FC = memo(() => {
         <div className={`grid grid-cols-3 gap-4 ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
         } transition-all duration-700`} style={{ animationDelay: '200ms' }}>
-          {stats.map((stat, index) => {
+          {stats.map((stat) => {
             const Icon = stat.icon;
             return (
               <div
@@ -94,7 +94,7 @@ const CommunityPage: React.FC = memo(() => {
         } transition-all duration-700`} style={{ animationDelay: '400ms' }}>
           <h2 className="text-lg font-bold text-gray-900 mb-4">Actions rapides</h2>
           <div className="grid grid-cols-3 gap-3">
-            {quickActions.map((action, index) => {
+            {quickActions.map((action) => {
               const Icon = action.icon;
               return (
                 <button
@@ -117,7 +117,7 @@ const CommunityPage: React.FC = memo(() => {
         } transition-all duration-700`} style={{ animationDelay: '600ms' }}>
           <h2 className="text-lg font-bold text-gray-900 mb-4">Options de chat</h2>
           <div className="space-y-4">
-            {chatOptions.map((option, index) => {
+            {chatOptions.map((option) => {
               const Icon = option.icon;
               return (
                 <button
