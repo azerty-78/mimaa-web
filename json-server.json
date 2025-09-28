@@ -4,6 +4,5 @@
   "cors": true,
   "no-cors": false,
   "read-only": false,
-  "static": "./public",
-  "routes": "./routes.json"
+  "static": "./public"
 }
