@@ -19,19 +19,22 @@ const HomePage: React.FC = memo(() => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [activeImageSrc, setActiveImageSrc] = useState<string | null>(null);
-  const defaultImage = 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=1600&auto=format&fit=crop';
+  const buildSvgDataUri = (title: string) => {
+    const w = 800; const h = 320;
+    const bg = '#2563eb';
+    const fg = '#ffffff';
+    const text = (title || 'Campagne santé').replace(/&/g, '&amp;').replace(/</g, '&lt;');
+    const svg = `<?xml version="1.0" encoding="UTF-8"?><svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'><rect width='100%' height='100%' fill='${bg}'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-family='Arial, Helvetica, sans-serif' font-size='28' fill='${fg}'>${text}</text></svg>`;
+    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+  };
+  const defaultImage = buildSvgDataUri('Santé');
   const [likeCounts, setLikeCounts] = useState<Record<number, number>>({});
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [openComments, setOpenComments] = useState<Record<number, boolean>>({});
   const [commentTexts, setCommentTexts] = useState<Record<number, string>>({});
   const [isLoading, setIsLoading] = useState(true);
 
-  const getTitleImage = (title: string) => {
-    const bg = '2563eb';
-    const fg = 'ffffff';
-    const text = encodeURIComponent(title || 'Campagne santé');
-    return `https://via.placeholder.com/800x320/${bg}/${fg}?text=${text}`;
-  };
+  const getTitleImage = (title: string) => buildSvgDataUri(title);
 
   const toast = useToast();
   useEffect(() => {
