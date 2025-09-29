@@ -20,6 +20,16 @@ const HomePage: React.FC = memo(() => {
   const [activeImageSrc, setActiveImageSrc] = useState<string | null>(null);
   const defaultImage = 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=1600&auto=format&fit=crop';
   const [likeCounts, setLikeCounts] = useState<Record<number, number>>({});
+  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const [openComments, setOpenComments] = useState<Record<number, boolean>>({});
+  const [commentTexts, setCommentTexts] = useState<Record<number, string>>({});
+
+  const getTitleImage = (title: string) => {
+    const bg = '2563eb'; // bleu tailwind
+    const fg = 'ffffff';
+    const text = encodeURIComponent(title || 'Campagne santé');
+    return `https://via.placeholder.com/800x320/${bg}/${fg}?text=${text}`;
+  };
 
   useEffect(() => {
     setIsVisible(true);
@@ -51,12 +61,12 @@ const HomePage: React.FC = memo(() => {
   };
 
   const openOfficialSite = (campaign: Campaign) => {
-    const url = campaign.officialUrl || campaign.link;
+    const url = campaign.link;
     if (url) window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   const handleShare = async (campaign: Campaign) => {
-    const url = campaign.officialUrl || campaign.link || window.location.href;
+    const url = campaign.link || window.location.href;
     const shareData = {
       title: campaign.title,
       text: campaign.description || 'Découvrez cette campagne santé',
@@ -80,6 +90,20 @@ const HomePage: React.FC = memo(() => {
     setLikeCounts((prev) => ({ ...prev, [campaignId]: (prev[campaignId] || 0) + 1 }));
   };
 
+  const toggleMenu = (campaignId: number) => {
+    setOpenMenuId((prev) => (prev === campaignId ? null : campaignId));
+  };
+
+  const toggleComments = (campaignId: number) => {
+    setOpenComments((prev) => ({ ...prev, [campaignId]: !prev[campaignId] }));
+  };
+
+  const submitComment = (campaignId: number) => {
+    // Pour l’instant, on garde local. Plus tard: persistance côté serveur/admin.
+    setCommentTexts((prev) => ({ ...prev, [campaignId]: '' }));
+    alert('Commentaire envoyé (stockage local temporaire).');
+  };
+
   return (
     <div className="w-full p-3 sm:p-4 space-y-4 min-h-full">
       {/* Header avec animation */}
@@ -99,18 +123,30 @@ const HomePage: React.FC = memo(() => {
           style={{ animationDelay: `${index * 200}ms` }}
         >
           {/* Image du post */}
-            <div className="relative">
+          <div className="relative">
               <img 
-              src={(campaign.imageUrl || campaign.thumbnailUrl || defaultImage) || ''}
+              src={(campaign.imageUrl || campaign.thumbnailUrl || getTitleImage(campaign.title) || defaultImage) || ''}
               alt={campaign.title}
               className="w-full h-56 object-cover cursor-zoom-in"
-              onClick={() => openImage(campaign.imageUrl || campaign.thumbnailUrl || defaultImage)}
-              onError={(e) => { (e.currentTarget as HTMLImageElement).src = defaultImage; }}
+              onClick={() => openImage(campaign.imageUrl || campaign.thumbnailUrl || getTitleImage(campaign.title) || defaultImage)}
+              onError={(e) => { (e.currentTarget as HTMLImageElement).src = getTitleImage(campaign.title); }}
             />
             <div className="absolute top-4 right-4 flex gap-2">
-              <button className="p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors" aria-label="Options">
+              <div className="relative">
+                <button className="p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors" aria-label="Options" onClick={(e) => { e.stopPropagation(); toggleMenu(campaign.id); }}>
                   <MoreVert className="w-5 h-5 text-gray-600" />
                 </button>
+                {openMenuId === campaign.id && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                    <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" onClick={(e) => { e.stopPropagation(); openOfficialSite(campaign); setOpenMenuId(null); }}>
+                      Aller au site officiel
+                    </button>
+                    <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" onClick={(e) => { e.stopPropagation(); handleShare(campaign); setOpenMenuId(null); }}>
+                      Partager
+                    </button>
+                  </div>
+                )}
+              </div>
               </div>
             </div>
 
@@ -139,7 +175,9 @@ const HomePage: React.FC = memo(() => {
 
             {/* Contenu du post */}
             <div className="mb-4">
-              <h3 className="text-lg font-bold text-gray-800 mb-2">{campaign.title}</h3>
+              <h3 className="text-lg font-bold text-gray-800 mb-2">
+                {campaign.title}
+              </h3>
               {campaign.status && (
                 <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium mb-4 inline-block">
                   {campaign.status}
@@ -165,9 +203,9 @@ const HomePage: React.FC = memo(() => {
                   <Favorite className="w-5 h-5" />
                   <span className="text-sm font-medium">{likeCounts[campaign.id] || 0}</span>
                 </button>
-                <button className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors" onClick={() => openImage(campaign.imageUrl || campaign.thumbnailUrl || defaultImage)}>
+                <button className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors" onClick={() => toggleComments(campaign.id)}>
                   <Comment className="w-5 h-5" />
-                  <span className="text-sm font-medium">Agrandir</span>
+                  <span className="text-sm font-medium">Commenter</span>
                 </button>
                 <button className="flex items-center space-x-2 text-gray-600 hover:text-green-500 transition-colors" onClick={() => handleShare(campaign)}>
                   <Share className="w-5 h-5" />
@@ -175,6 +213,22 @@ const HomePage: React.FC = memo(() => {
                 </button>
               </div>
             </div>
+
+            {openComments[campaign.id] && (
+              <div className="mt-3 p-3 border border-gray-200 rounded-lg bg-gray-50">
+                <textarea
+                  className="w-full p-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows={3}
+                  placeholder="Votre commentaire..."
+                  value={commentTexts[campaign.id] || ''}
+                  onChange={(e) => setCommentTexts((prev) => ({ ...prev, [campaign.id]: e.target.value }))}
+                />
+                <div className="mt-2 flex justify-end gap-2">
+                  <button className="px-3 py-1.5 text-sm rounded bg-gray-200 hover:bg-gray-300" onClick={() => toggleComments(campaign.id)}>Annuler</button>
+                  <button className="px-3 py-1.5 text-sm rounded bg-blue-600 text-white hover:bg-blue-700" onClick={() => submitComment(campaign.id)} disabled={!commentTexts[campaign.id]?.trim()}>Envoyer</button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       ))}
