@@ -3,8 +3,8 @@
     {
       "id": 1,
       "username": "admin",
-      "email": "bendjibril789@gmail.com",
-      "password": "Admin1234!",
+      "email": "admin.system@gmail.com",
+      "password": "user1234!",
       "profileType": "administrator",
       "profileImage": null,
       "firstName": "Admin",
@@ -18,7 +18,7 @@
     {
       "id": 2,
       "username": "Marie Hélène",
-      "email": "marie.helene@example.com",
+      "email": "marie.helene@gmail.com",
       "password": "user1234",
       "profileType": "pregnant_woman",
       "profileImage": null,
@@ -33,7 +33,7 @@
     {
       "id": 3,
       "username": "Dr Djeff Djadi Leteta",
-      "email": "dr.djeff.leteta@example.com",
+      "email": "dr.djeff.leteta@gmail.com",
       "password": "user1234",
       "profileType": "doctor",
       "profileImage": null,

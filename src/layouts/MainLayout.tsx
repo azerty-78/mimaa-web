@@ -8,6 +8,7 @@ import { useAuth } from '../hooks/useAuth';
 const HomePage = lazy(() => import('../pages/HomePage'));
 const DashboardPage = lazy(() => import('../pages/DashboardPage'));
 const AdminDashboardPage = lazy(() => import('../pages/AdminDashboardPage'));
+const PregnancyDashboardPage = lazy(() => import('../pages/PregnancyDashboardPage'));
 const CommunityPage = lazy(() => import('../pages/CommunityPage'));
 const SettingsPage = lazy(() => import('../pages/SettingsPage'));
 const ProfilePage = lazy(() => import('../pages/ProfilePage'));
@@ -52,17 +53,20 @@ const MainLayout: React.FC = memo(() => {
             <HomePage />
           </Suspense>
         );
-      case 'dashboard':
+      case 'dashboard': {
+        const auth = useAuth();
         return (
           <Suspense fallback={<LoadingSpinner />}>
-            {/* Si l'utilisateur est administrateur, afficher le dashboard admin */}
-            {useAuth().user?.profileType === 'administrator' ? (
+            {auth.user?.profileType === 'administrator' ? (
               <AdminDashboardPage />
+            ) : auth.user?.profileType === 'pregnant_woman' ? (
+              <PregnancyDashboardPage />
             ) : (
               <DashboardPage />
             )}
           </Suspense>
         );
+      }
       case 'admin-dashboard':
         return (
           <Suspense fallback={<LoadingSpinner />}>
@@ -117,6 +121,12 @@ const MainLayout: React.FC = memo(() => {
             <CommunityChatPage />
           </Suspense>
         );
+      case 'pregnant-dashboard':
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <PregnancyDashboardPage />
+          </Suspense>
+        );
       default:
         return (
           <Suspense fallback={<LoadingSpinner />}>
@@ -138,11 +148,12 @@ const MainLayout: React.FC = memo(() => {
     );
   }
 
-  // Pages sans barres (connexion/inscription/chat)
+  // Pages sans barres (connexion/inscription/chat/pregnant-dashboard)
   const isAuthPage = activeTab === 'signin' || activeTab === 'signup';
   const isChatPage = activeTab.startsWith('chat-');
+  const isFullScreenPage = isAuthPage || isChatPage || activeTab === 'pregnant-dashboard';
 
-  if (isAuthPage || isChatPage) {
+  if (isFullScreenPage) {
     return (
       <div className="h-screen w-full bg-gray-100">
         {renderPage()}
