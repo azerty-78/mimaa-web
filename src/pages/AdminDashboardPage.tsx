@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useToast } from '../components/ToastProvider';
 import { Add, Edit, Delete, Save, Close } from '@mui/icons-material';
 
 type Campaign = {
@@ -35,8 +36,10 @@ const AdminDashboardPage: React.FC = () => {
       const res = await fetch('http://localhost:3001/campaigns');
       const data = await res.json();
       setItems(Array.isArray(data) ? data : []);
+      toast.show('Campagnes chargées', 'success');
     } catch (e: any) {
       setError(e?.message || 'Erreur de chargement');
+      toast.show('Erreur lors du chargement', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -49,6 +52,7 @@ const AdminDashboardPage: React.FC = () => {
   const startCreate = () => {
     setEditing({ ...emptyCampaign });
     setShowForm(true);
+    toast.show('Création d’une campagne', 'info');
   };
 
   const startEdit = (c: Campaign) => {
@@ -63,9 +67,11 @@ const AdminDashboardPage: React.FC = () => {
   };
 
   const saveForm = async () => {
+    const toastAction = editing?.id ? 'Mise à jour' : 'Création';
     if (!editing) return;
     if (!editing.title?.trim() || !editing.link?.trim()) {
       setError('Titre et lien sont requis');
+      toast.show('Titre et lien sont requis', 'error');
       return;
     }
     try {
@@ -88,8 +94,10 @@ const AdminDashboardPage: React.FC = () => {
       await fetchItems();
       try { window.dispatchEvent(new CustomEvent('campaigns:changed')); } catch {}
       cancelForm();
+      toast.show(`${toastAction} réussie`, 'success');
     } catch (e: any) {
       setError(e?.message || 'Erreur lors de l’enregistrement');
+      toast.show('Erreur lors de l’enregistrement', 'error');
     }
   };
 
@@ -101,11 +109,14 @@ const AdminDashboardPage: React.FC = () => {
       if (!res.ok) throw new Error('Échec de la suppression');
       await fetchItems();
       try { window.dispatchEvent(new CustomEvent('campaigns:changed')); } catch {}
+      toast.show('Campagne supprimée', 'success');
     } catch (e: any) {
       setError(e?.message || 'Erreur lors de la suppression');
+      toast.show('Erreur lors de la suppression', 'error');
     }
   };
 
+  const toast = useToast();
   const Form = useMemo(() => (
     !showForm || !editing ? null : (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={cancelForm}>

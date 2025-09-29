@@ -1,5 +1,6 @@
 import React, { memo, useState, useEffect } from 'react';
 import { MedicalServices, LocalHospital, MoreVert, Share, Favorite, Comment, Verified, Close } from '@mui/icons-material';
+import { useToast } from '../components/ToastProvider';
 
 type Campaign = {
   id: number;
@@ -32,6 +33,7 @@ const HomePage: React.FC = memo(() => {
     return `https://via.placeholder.com/800x320/${bg}/${fg}?text=${text}`;
   };
 
+  const toast = useToast();
   useEffect(() => {
     setIsVisible(true);
   }, []);
@@ -118,9 +120,10 @@ const HomePage: React.FC = memo(() => {
     try {
       if (navigator.share) {
         await navigator.share(shareData as any);
+        toast.show('Lien partagé', 'success');
       } else if (navigator.clipboard) {
         await navigator.clipboard.writeText(url);
-        alert('Lien copié dans le presse-papiers');
+        toast.show('Lien copié dans le presse-papiers', 'success');
       } else {
         window.open(url, '_blank', 'noopener,noreferrer');
       }
@@ -141,7 +144,7 @@ const HomePage: React.FC = memo(() => {
 
   const submitComment = (campaignId: number) => {
     setCommentTexts((prev) => ({ ...prev, [campaignId]: '' }));
-    alert('Commentaire envoyé (stockage local temporaire).');
+    toast.show('Commentaire envoyé', 'success');
   };
 
   return (

@@ -36,35 +36,39 @@ const server = http.createServer((req, res) => {
 
   console.log(`${req.method} ${pathname}`, query);
 
-  // Route pour les utilisateurs
-  if (pathname === '/users') {
+  // Routes pour les utilisateurs (CRUD)
+  if (pathname.startsWith('/users')) {
+    const segments = pathname.split('/').filter(Boolean); // ['users', 'id?']
+    const id = segments[1] ? parseInt(segments[1], 10) : null;
+
     if (req.method === 'GET') {
       const { email, password } = query;
-      
-      if (email && password) {
-        // Recherche par email et mot de passe
-        const user = db.users.find(u => u.email === email && u.password === password);
+      if (id) {
+        const user = (db.users || []).find(u => u.id === id) || null;
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(user ? [user] : []));
-      } else {
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(db.users || []));
+        return res.end(JSON.stringify(user));
       }
-    } else if (req.method === 'POST') {
+      if (email && password) {
+        const user = (db.users || []).find(u => u.email === email && u.password === password);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify(user ? [user] : []));
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify(db.users || []));
+    }
+
+    if (req.method === 'POST' && segments.length === 1) {
       let body = '';
-      req.on('data', chunk => {
-        body += chunk.toString();
-      });
+      req.on('data', chunk => { body += chunk.toString(); });
       req.on('end', () => {
         try {
-          const newUser = JSON.parse(body);
-          newUser.id = Math.max(...(db.users || []).map(u => u.id)) + 1;
-          newUser.createdAt = new Date().toISOString();
-          newUser.updatedAt = new Date().toISOString();
-          
+          const payload = JSON.parse(body || '{}');
           if (!db.users) db.users = [];
+          const nextId = db.users.length ? Math.max(...db.users.map(u => u.id || 0)) + 1 : 1;
+          const now = new Date().toISOString();
+          const newUser = { id: nextId, createdAt: now, updatedAt: now, ...payload };
           db.users.push(newUser);
-          
+          try { fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8'); } catch {}
           res.writeHead(201, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify(newUser));
         } catch (error) {
@@ -72,6 +76,48 @@ const server = http.createServer((req, res) => {
           res.end(JSON.stringify({ error: 'Invalid JSON' }));
         }
       });
+      return;
+    }
+
+    if ((req.method === 'PATCH' || req.method === 'PUT') && id) {
+      let body = '';
+      req.on('data', chunk => { body += chunk.toString(); });
+      req.on('end', () => {
+        try {
+          const payload = JSON.parse(body || '{}');
+          const users = db.users || [];
+          const index = users.findIndex(u => u.id === id);
+          if (index === -1) {
+            res.writeHead(404, { 'Content-Type': 'application/json' });
+            return res.end(JSON.stringify({ error: 'Not Found' }));
+          }
+          const now = new Date().toISOString();
+          const updated = { ...users[index], ...payload, id, updatedAt: now };
+          users[index] = updated;
+          db.users = users;
+          try { fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8'); } catch {}
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify(updated));
+        } catch (e) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Invalid JSON' }));
+        }
+      });
+      return;
+    }
+
+    if (req.method === 'DELETE' && id) {
+      const users = db.users || [];
+      const index = users.findIndex(u => u.id === id);
+      if (index === -1) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: 'Not Found' }));
+      }
+      const removed = users.splice(index, 1)[0];
+      db.users = users;
+      try { fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8'); } catch {}
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify(removed));
     }
   }
   // Route pour les campagnes (CRUD)
@@ -112,7 +158,7 @@ const server = http.createServer((req, res) => {
       });
     }
     // PUT /campaigns/:id
-    else if (req.method === 'PUT' && id) {
+    else if ((req.method === 'PUT' || req.method === 'PATCH') && id) {
       let body = '';
       req.on('data', chunk => { body += chunk.toString(); });
       req.on('end', () => {
