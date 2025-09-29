@@ -9,7 +9,11 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "db": "node simple-server.cjs",
-    "dev:full": "concurrently \"npm run dev\" \"npm run db\""
+    "dev:full": "concurrently \"npm run dev\" \"npm run db\"",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
