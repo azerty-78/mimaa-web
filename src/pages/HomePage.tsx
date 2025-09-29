@@ -1,36 +1,56 @@
 import React, { memo, useState, useEffect } from 'react';
-import { MedicalServices, LocalHospital, MoreVert, Share, Favorite, Comment, Verified } from '@mui/icons-material';
+import { MedicalServices, LocalHospital, MoreVert, Share, Favorite, Comment, Verified, Close } from '@mui/icons-material';
+
+type Campaign = {
+  id: number;
+  title: string;
+  description?: string | null;
+  organizer?: string | null;
+  imageUrl?: string | null;
+  link?: string | null;
+  status?: string | null;
+};
 
 const HomePage: React.FC = memo(() => {
   const [isVisible, setIsVisible] = useState(false);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [activeImageSrc, setActiveImageSrc] = useState<string | null>(null);
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
 
-  const posts = [
-    {
-      id: 1,
-      title: "Campagne de santé centre Pasteur",
-      image: "/api/placeholder/400/200",
-      author: "Centre Pasteur",
-      verified: true,
-      type: "campaign",
-      content: "Nouvelle campagne de sensibilisation sur la santé maternelle et infantile.",
-      stats: { likes: 124, comments: 23, shares: 8 }
-    },
-    {
-      id: 2,
-      title: "JOURNÉES NATIONALES DE VACCINATION",
-      subtitle: "RIPOSTE À L'ÉPIDÉMIE DE POLIOMYÉLITE",
-      author: "Ministère de la Santé",
-      verified: true,
-      type: "vaccination",
-      date: "DU 29 MAI AU 1ER JUIN 2025",
-      content: "Permettons à nos enfants de 1 à 5 ans de recevoir leur dose de vitamine A et faisons vacciner tous nos enfants de 0 à 5 ans.",
-      stats: { likes: 456, comments: 67, shares: 34 }
+  useEffect(() => {
+    let isMounted = true;
+    const fetchCampaigns = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/campaigns');
+        if (!response.ok) return;
+        const data: Campaign[] = await response.json();
+        if (isMounted) setCampaigns(Array.isArray(data) ? data : []);
+      } catch (error) {
+        // Échec silencieux pour ne pas casser la page
+        if (isMounted) setCampaigns([]);
+      }
+    };
+    fetchCampaigns();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleCardClick = (campaign: Campaign) => {
+    const hasImage = Boolean(campaign.imageUrl);
+    if (hasImage) {
+      setActiveImageSrc(campaign.imageUrl as string);
+      setIsImageModalOpen(true);
+      return;
     }
-  ];
+    if (campaign.link) {
+      window.open(campaign.link, '_blank', 'noopener,noreferrer');
+    }
+  };
 
   return (
     <div className="w-full p-3 sm:p-4 space-y-4 min-h-full">
@@ -42,20 +62,23 @@ const HomePage: React.FC = memo(() => {
         <p className="text-gray-600">Restez informé des dernières campagnes et initiatives</p>
       </div>
 
-      {posts.map((post, index) => (
+      {campaigns.map((campaign, index) => (
         <div
-          key={post.id}
+          key={campaign.id}
           className={`bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ${
             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           }`}
           style={{ animationDelay: `${index * 200}ms` }}
+          onClick={() => handleCardClick(campaign)}
+          role="button"
+          tabIndex={0}
         >
           {/* Image du post */}
-          {post.image && (
+          {campaign.imageUrl && (
             <div className="relative">
               <img 
-                src={post.image} 
-                alt={post.title} 
+                src={campaign.imageUrl || ''} 
+                alt={campaign.title} 
                 className="w-full h-48 object-cover"
               />
               <div className="absolute top-4 right-4">
@@ -71,7 +94,7 @@ const HomePage: React.FC = memo(() => {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                  {post.type === 'campaign' ? (
+                  {true ? (
                     <MedicalServices className="w-5 h-5 text-white" />
                   ) : (
                     <LocalHospital className="w-5 h-5 text-white" />
@@ -79,8 +102,8 @@ const HomePage: React.FC = memo(() => {
                 </div>
                 <div>
                   <div className="flex items-center space-x-2">
-                    <span className="font-semibold text-gray-800">{post.author}</span>
-                    {post.verified && (
+                    <span className="font-semibold text-gray-800">{campaign.organizer || 'Organisateur'}</span>
+                    {true && (
                       <Verified className="w-4 h-4 text-blue-500" />
                     )}
                   </div>
@@ -91,16 +114,13 @@ const HomePage: React.FC = memo(() => {
 
             {/* Contenu du post */}
             <div className="mb-4">
-              <h3 className="text-lg font-bold text-gray-800 mb-2">{post.title}</h3>
-              {post.subtitle && (
-                <h4 className="text-base font-semibold text-green-600 mb-2">{post.subtitle}</h4>
-              )}
-              {post.date && (
+              <h3 className="text-lg font-bold text-gray-800 mb-2">{campaign.title}</h3>
+              {campaign.status && (
                 <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium mb-4 inline-block">
-                  {post.date}
+                  {campaign.status}
                 </div>
               )}
-              <p className="text-gray-700 leading-relaxed">{post.content}</p>
+              <p className="text-gray-700 leading-relaxed">{campaign.description || '—'}</p>
             </div>
 
             {/* Actions du post */}
@@ -108,15 +128,15 @@ const HomePage: React.FC = memo(() => {
               <div className="flex items-center space-x-6">
                 <button className="flex items-center space-x-2 text-gray-600 hover:text-red-500 transition-colors">
                   <Favorite className="w-5 h-5" />
-                  <span className="text-sm font-medium">{post.stats.likes}</span>
+                  <span className="text-sm font-medium">0</span>
                 </button>
                 <button className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors">
                   <Comment className="w-5 h-5" />
-                  <span className="text-sm font-medium">{post.stats.comments}</span>
+                  <span className="text-sm font-medium">0</span>
                 </button>
                 <button className="flex items-center space-x-2 text-gray-600 hover:text-green-500 transition-colors">
                   <Share className="w-5 h-5" />
-                  <span className="text-sm font-medium">{post.stats.shares}</span>
+                  <span className="text-sm font-medium">0</span>
                 </button>
               </div>
             </div>
@@ -134,6 +154,18 @@ const HomePage: React.FC = memo(() => {
           Participer
         </button>
       </div>
+
+      {/* Modale d'image */}
+      {isImageModalOpen && activeImageSrc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onClick={() => { setIsImageModalOpen(false); setActiveImageSrc(null); }}>
+          <div className="relative max-w-3xl w-[90%]" onClick={(e) => e.stopPropagation()}>
+            <button className="absolute -top-3 -right-3 bg-white rounded-full p-2 shadow hover:bg-gray-50" onClick={() => { setIsImageModalOpen(false); setActiveImageSrc(null); }} aria-label="Fermer">
+              <Close className="w-5 h-5 text-gray-700" />
+            </button>
+            <img src={activeImageSrc} alt="Image campagne" className="w-full h-auto rounded-lg shadow-lg" />
+          </div>
+        </div>
+      )}
     </div>
   );
 });
