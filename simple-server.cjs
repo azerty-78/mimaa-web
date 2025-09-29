@@ -31,7 +31,9 @@ const server = http.createServer((req, res) => {
   }
 
   const parsedUrl = url.parse(req.url, true);
-  const pathname = parsedUrl.pathname;
+  let pathname = parsedUrl.pathname;
+  // Normaliser le chemin (supprimer le slash final)
+  if (pathname.length > 1 && pathname.endsWith('/')) pathname = pathname.slice(0, -1);
   const query = parsedUrl.query;
 
   console.log(`${req.method} ${pathname}`, query);
@@ -39,7 +41,7 @@ const server = http.createServer((req, res) => {
   // Routes pour les utilisateurs (CRUD)
   if (pathname.startsWith('/users')) {
     const segments = pathname.split('/').filter(Boolean); // ['users', 'id?']
-    const id = segments[1] ? parseInt(segments[1], 10) : null;
+    const id = segments[1] ? Number(segments[1]) : null;
 
     if (req.method === 'GET') {
       const { email, password } = query;
@@ -86,7 +88,7 @@ const server = http.createServer((req, res) => {
         try {
           const payload = JSON.parse(body || '{}');
           const users = db.users || [];
-          const index = users.findIndex(u => u.id === id);
+          const index = users.findIndex(u => Number(u.id) === Number(id));
           if (index === -1) {
             res.writeHead(404, { 'Content-Type': 'application/json' });
             return res.end(JSON.stringify({ error: 'Not Found' }));
@@ -108,7 +110,7 @@ const server = http.createServer((req, res) => {
 
     if (req.method === 'DELETE' && id) {
       const users = db.users || [];
-      const index = users.findIndex(u => u.id === id);
+      const index = users.findIndex(u => Number(u.id) === Number(id));
       if (index === -1) {
         res.writeHead(404, { 'Content-Type': 'application/json' });
         return res.end(JSON.stringify({ error: 'Not Found' }));
@@ -123,12 +125,12 @@ const server = http.createServer((req, res) => {
   // Route pour les campagnes (CRUD)
   else if (pathname.startsWith('/campaigns')) {
     const segments = pathname.split('/').filter(Boolean); // ['campaigns', 'id?']
-    const id = segments[1] ? parseInt(segments[1], 10) : null;
+    const id = segments[1] ? Number(segments[1]) : null;
 
     // GET /campaigns ou GET /campaigns/:id
     if (req.method === 'GET') {
       const campaigns = db.campaigns || [];
-      const result = id ? campaigns.find(c => c.id === id) || null : campaigns;
+      const result = id ? campaigns.find(c => Number(c.id) === Number(id)) || null : campaigns;
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(result));
     }
@@ -165,7 +167,7 @@ const server = http.createServer((req, res) => {
         try {
           const payload = JSON.parse(body || '{}');
           const campaigns = db.campaigns || [];
-          const index = campaigns.findIndex(c => c.id === id);
+          const index = campaigns.findIndex(c => Number(c.id) === Number(id));
           if (index === -1) {
             res.writeHead(404, { 'Content-Type': 'application/json' });
             return res.end(JSON.stringify({ error: 'Not Found' }));
