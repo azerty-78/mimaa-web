@@ -7,6 +7,7 @@ import { useAuth } from '../hooks/useAuth';
 // Lazy loading des pages pour optimiser les performances
 const HomePage = lazy(() => import('../pages/HomePage'));
 const DashboardPage = lazy(() => import('../pages/DashboardPage'));
+const AdminDashboardPage = lazy(() => import('../pages/AdminDashboardPage'));
 const CommunityPage = lazy(() => import('../pages/CommunityPage'));
 const SettingsPage = lazy(() => import('../pages/SettingsPage'));
 const ProfilePage = lazy(() => import('../pages/ProfilePage'));
@@ -54,7 +55,18 @@ const MainLayout: React.FC = memo(() => {
       case 'dashboard':
         return (
           <Suspense fallback={<LoadingSpinner />}>
-            <DashboardPage />
+            {/* Si l'utilisateur est administrateur, afficher le dashboard admin */}
+            {useAuth().user?.profileType === 'administrator' ? (
+              <AdminDashboardPage />
+            ) : (
+              <DashboardPage />
+            )}
+          </Suspense>
+        );
+      case 'admin-dashboard':
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <AdminDashboardPage />
           </Suspense>
         );
       case 'community':

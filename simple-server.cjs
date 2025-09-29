@@ -74,10 +74,87 @@ const server = http.createServer((req, res) => {
       });
     }
   }
-  // Route pour les campagnes
-  else if (pathname === '/campaigns') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify(db.campaigns || []));
+  // Route pour les campagnes (CRUD)
+  else if (pathname.startsWith('/campaigns')) {
+    const segments = pathname.split('/').filter(Boolean); // ['campaigns', 'id?']
+    const id = segments[1] ? parseInt(segments[1], 10) : null;
+
+    // GET /campaigns ou GET /campaigns/:id
+    if (req.method === 'GET') {
+      const campaigns = db.campaigns || [];
+      const result = id ? campaigns.find(c => c.id === id) || null : campaigns;
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(result));
+    }
+    // POST /campaigns
+    else if (req.method === 'POST' && segments.length === 1) {
+      let body = '';
+      req.on('data', chunk => { body += chunk.toString(); });
+      req.on('end', () => {
+        try {
+          const payload = JSON.parse(body || '{}');
+          if (!payload || !payload.title || !payload.link) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            return res.end(JSON.stringify({ error: 'title et link sont requis' }));
+          }
+          if (!db.campaigns) db.campaigns = [];
+          const nextId = db.campaigns.length ? Math.max(...db.campaigns.map(c => c.id || 0)) + 1 : 1;
+          const now = new Date().toISOString();
+          const newCampaign = { id: nextId, createdAt: now, updatedAt: now, ...payload };
+          db.campaigns.push(newCampaign);
+          try { fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8'); } catch {}
+          res.writeHead(201, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify(newCampaign));
+        } catch (e) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Invalid JSON' }));
+        }
+      });
+    }
+    // PUT /campaigns/:id
+    else if (req.method === 'PUT' && id) {
+      let body = '';
+      req.on('data', chunk => { body += chunk.toString(); });
+      req.on('end', () => {
+        try {
+          const payload = JSON.parse(body || '{}');
+          const campaigns = db.campaigns || [];
+          const index = campaigns.findIndex(c => c.id === id);
+          if (index === -1) {
+            res.writeHead(404, { 'Content-Type': 'application/json' });
+            return res.end(JSON.stringify({ error: 'Not Found' }));
+          }
+          const now = new Date().toISOString();
+          const updated = { ...campaigns[index], ...payload, id, updatedAt: now };
+          campaigns[index] = updated;
+          db.campaigns = campaigns;
+          try { fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8'); } catch {}
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify(updated));
+        } catch (e) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Invalid JSON' }));
+        }
+      });
+    }
+    // DELETE /campaigns/:id
+    else if (req.method === 'DELETE' && id) {
+      const campaigns = db.campaigns || [];
+      const index = campaigns.findIndex(c => c.id === id);
+      if (index === -1) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: 'Not Found' }));
+      }
+      const removed = campaigns.splice(index, 1)[0];
+      db.campaigns = campaigns;
+      try { fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8'); } catch {}
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(removed));
+    }
+    else {
+      res.writeHead(405, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Method Not Allowed' }));
+    }
   }
   // Route pour les communautés
   else if (pathname === '/communities') {

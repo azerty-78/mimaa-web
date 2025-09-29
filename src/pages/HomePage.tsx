@@ -85,7 +85,15 @@ const HomePage: React.FC = memo(() => {
       }
     };
 
+    const triggerReload = () => {
+      // Invalider le cache pour forcer rechargement
+      try { sessionStorage.removeItem('campaigns'); } catch {}
+      fetchCampaigns();
+    };
+
     fetchCampaigns();
+    window.addEventListener('campaigns:changed', triggerReload);
+    window.addEventListener('focus', triggerReload);
     return () => controller.abort();
   }, []);
 
