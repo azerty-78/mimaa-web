@@ -293,6 +293,7 @@ npx vitest run src/test/simple.test.ts
     "updatedAt": "2024-09-29T07:00:00Z"
   }
 }
+
 ```
 
 #### 🔄 Mise à Jour du Profil
