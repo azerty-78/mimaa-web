@@ -9,6 +9,8 @@ type Campaign = {
   imageUrl?: string | null;
   link?: string | null;
   status?: string | null;
+  officialUrl?: string | null;
+  thumbnailUrl?: string | null;
 };
 
 const HomePage: React.FC = memo(() => {
@@ -16,6 +18,8 @@ const HomePage: React.FC = memo(() => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [activeImageSrc, setActiveImageSrc] = useState<string | null>(null);
+  const defaultImage = 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=1600&auto=format&fit=crop';
+  const [likeCounts, setLikeCounts] = useState<Record<number, number>>({});
 
   useEffect(() => {
     setIsVisible(true);
@@ -40,16 +44,40 @@ const HomePage: React.FC = memo(() => {
     };
   }, []);
 
-  const handleCardClick = (campaign: Campaign) => {
-    const hasImage = Boolean(campaign.imageUrl);
-    if (hasImage) {
-      setActiveImageSrc(campaign.imageUrl as string);
-      setIsImageModalOpen(true);
-      return;
+  const openImage = (imageSrc?: string | null) => {
+    if (!imageSrc) return;
+    setActiveImageSrc(imageSrc);
+    setIsImageModalOpen(true);
+  };
+
+  const openOfficialSite = (campaign: Campaign) => {
+    const url = campaign.officialUrl || campaign.link;
+    if (url) window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleShare = async (campaign: Campaign) => {
+    const url = campaign.officialUrl || campaign.link || window.location.href;
+    const shareData = {
+      title: campaign.title,
+      text: campaign.description || 'Découvrez cette campagne santé',
+      url
+    };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData as any);
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+        alert('Lien copié dans le presse-papiers');
+      } else {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      }
+    } catch (_) {
+      // ignore
     }
-    if (campaign.link) {
-      window.open(campaign.link, '_blank', 'noopener,noreferrer');
-    }
+  };
+
+  const handleLike = (campaignId: number) => {
+    setLikeCounts((prev) => ({ ...prev, [campaignId]: (prev[campaignId] || 0) + 1 }));
   };
 
   return (
@@ -69,25 +97,22 @@ const HomePage: React.FC = memo(() => {
             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           }`}
           style={{ animationDelay: `${index * 200}ms` }}
-          onClick={() => handleCardClick(campaign)}
-          role="button"
-          tabIndex={0}
         >
           {/* Image du post */}
-          {campaign.imageUrl && (
             <div className="relative">
               <img 
-                src={campaign.imageUrl || ''} 
-                alt={campaign.title} 
-                className="w-full h-48 object-cover"
-              />
-              <div className="absolute top-4 right-4">
-                <button className="p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors">
+              src={(campaign.imageUrl || campaign.thumbnailUrl || defaultImage) || ''}
+              alt={campaign.title}
+              className="w-full h-56 object-cover cursor-zoom-in"
+              onClick={() => openImage(campaign.imageUrl || campaign.thumbnailUrl || defaultImage)}
+              onError={(e) => { (e.currentTarget as HTMLImageElement).src = defaultImage; }}
+            />
+            <div className="absolute top-4 right-4 flex gap-2">
+              <button className="p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors" aria-label="Options">
                   <MoreVert className="w-5 h-5 text-gray-600" />
                 </button>
               </div>
             </div>
-          )}
 
           <div className="p-6">
             {/* Header du post */}
@@ -107,7 +132,7 @@ const HomePage: React.FC = memo(() => {
                       <Verified className="w-4 h-4 text-blue-500" />
                     )}
                   </div>
-                  <p className="text-sm text-gray-500">Il y a 2h</p>
+                  <p className="text-sm text-gray-500">Annonce</p>
                 </div>
               </div>
             </div>
@@ -121,22 +146,32 @@ const HomePage: React.FC = memo(() => {
                 </div>
               )}
               <p className="text-gray-700 leading-relaxed">{campaign.description || '—'}</p>
+              {(campaign.officialUrl || campaign.link) && (
+                <div className="mt-3">
+                  <button
+                    className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                    onClick={() => openOfficialSite(campaign)}
+                  >
+                    Aller au site officiel
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Actions du post */}
             <div className="flex items-center justify-between pt-4 border-t border-gray-100">
               <div className="flex items-center space-x-6">
-                <button className="flex items-center space-x-2 text-gray-600 hover:text-red-500 transition-colors">
+                <button className="flex items-center space-x-2 text-gray-600 hover:text-red-500 transition-colors" onClick={() => handleLike(campaign.id)}>
                   <Favorite className="w-5 h-5" />
-                  <span className="text-sm font-medium">0</span>
+                  <span className="text-sm font-medium">{likeCounts[campaign.id] || 0}</span>
                 </button>
-                <button className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors">
+                <button className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors" onClick={() => openImage(campaign.imageUrl || campaign.thumbnailUrl || defaultImage)}>
                   <Comment className="w-5 h-5" />
-                  <span className="text-sm font-medium">0</span>
+                  <span className="text-sm font-medium">Agrandir</span>
                 </button>
-                <button className="flex items-center space-x-2 text-gray-600 hover:text-green-500 transition-colors">
+                <button className="flex items-center space-x-2 text-gray-600 hover:text-green-500 transition-colors" onClick={() => handleShare(campaign)}>
                   <Share className="w-5 h-5" />
-                  <span className="text-sm font-medium">0</span>
+                  <span className="text-sm font-medium">Partager</span>
                 </button>
               </div>
             </div>
@@ -162,7 +197,7 @@ const HomePage: React.FC = memo(() => {
             <button className="absolute -top-3 -right-3 bg-white rounded-full p-2 shadow hover:bg-gray-50" onClick={() => { setIsImageModalOpen(false); setActiveImageSrc(null); }} aria-label="Fermer">
               <Close className="w-5 h-5 text-gray-700" />
             </button>
-            <img src={activeImageSrc} alt="Image campagne" className="w-full h-auto rounded-lg shadow-lg" />
+            <img src={activeImageSrc} alt="Image campagne" className="w-full h-auto rounded-lg shadow-lg" onError={(e) => { (e.currentTarget as HTMLImageElement).src = defaultImage; }} />
           </div>
         </div>
       )}

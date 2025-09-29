@@ -58,6 +58,8 @@
       "location": "Tout le Cameroun",
       "organizer": "Ministère de la Santé",
       "imageUrl": "https://via.placeholder.com/400x200/3b82f6/ffffff?text=Vaccination+Polio",
+      "thumbnailUrl": null,
+      "officialUrl": null,
       "createdAt": "2024-01-01T00:00:00.000Z",
       "updatedAt": "2024-01-01T00:00:00.000Z"
     },
@@ -72,6 +74,8 @@
       "location": "Centre Pasteur, Yaoundé",
       "organizer": "Centre Pasteur",
       "imageUrl": "https://via.placeholder.com/400x200/10b981/ffffff?text=Centre+Pasteur",
+      "thumbnailUrl": null,
+      "officialUrl": null,
       "createdAt": "2024-01-01T00:00:00.000Z",
       "updatedAt": "2024-01-01T00:00:00.000Z"
     }
@@ -87,7 +91,9 @@
       "location": "Cameroun",
       "organizer": "Alima",
       "imageUrl": null,
+      "thumbnailUrl": null,
       "link": "https://www.facebook.com/share/p/1CB7zMHMPy/",
+      "officialUrl": "https://www.facebook.com/share/p/1CB7zMHMPy/",
       "createdAt": "2025-09-29T00:00:00.000Z",
       "updatedAt": "2025-09-29T00:00:00.000Z"
     }
