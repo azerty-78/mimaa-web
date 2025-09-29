@@ -168,12 +168,17 @@ const server = http.createServer((req, res) => {
           const payload = JSON.parse(body || '{}');
           const campaigns = db.campaigns || [];
           const index = campaigns.findIndex(c => Number(c.id) === Number(id));
-          if (index === -1) {
-            res.writeHead(404, { 'Content-Type': 'application/json' });
-            return res.end(JSON.stringify({ error: 'Not Found' }));
-          }
           const now = new Date().toISOString();
-          const updated = { ...campaigns[index], ...payload, id, updatedAt: now };
+          if (index === -1) {
+            // Upsert: créer si non trouvé (utile pour démos)
+            const created = { id: Number(id), createdAt: now, updatedAt: now, ...payload };
+            campaigns.push(created);
+            db.campaigns = campaigns;
+            try { fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8'); } catch {}
+            res.writeHead(201, { 'Content-Type': 'application/json' });
+            return res.end(JSON.stringify(created));
+          }
+          const updated = { ...campaigns[index], ...payload, id: Number(id), updatedAt: now };
           campaigns[index] = updated;
           db.campaigns = campaigns;
           try { fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8'); } catch {}
