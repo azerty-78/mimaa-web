@@ -23,9 +23,10 @@ const HomePage: React.FC = memo(() => {
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [openComments, setOpenComments] = useState<Record<number, boolean>>({});
   const [commentTexts, setCommentTexts] = useState<Record<number, string>>({});
+  const [isLoading, setIsLoading] = useState(true);
 
   const getTitleImage = (title: string) => {
-    const bg = '2563eb'; // bleu tailwind
+    const bg = '2563eb';
     const fg = 'ffffff';
     const text = encodeURIComponent(title || 'Campagne santé');
     return `https://via.placeholder.com/800x320/${bg}/${fg}?text=${text}`;
@@ -36,22 +37,56 @@ const HomePage: React.FC = memo(() => {
   }, []);
 
   useEffect(() => {
-    let isMounted = true;
+    // Hydrater likes/commentaires depuis localStorage
+    try {
+      const likesRaw = localStorage.getItem('likes');
+      if (likesRaw) setLikeCounts(JSON.parse(likesRaw));
+      const commentsOpenRaw = localStorage.getItem('commentsOpen');
+      if (commentsOpenRaw) setOpenComments(JSON.parse(commentsOpenRaw));
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    try { localStorage.setItem('likes', JSON.stringify(likeCounts)); } catch {}
+  }, [likeCounts]);
+
+  useEffect(() => {
+    try { localStorage.setItem('commentsOpen', JSON.stringify(openComments)); } catch {}
+  }, [openComments]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const fromSession = sessionStorage.getItem('campaigns');
+    if (fromSession) {
+      try {
+        const parsed = JSON.parse(fromSession);
+        if (Array.isArray(parsed)) {
+          setCampaigns(parsed);
+          setIsLoading(false);
+          return () => controller.abort();
+        }
+      } catch {}
+    }
+
     const fetchCampaigns = async () => {
       try {
-        const response = await fetch('http://localhost:3001/campaigns');
-        if (!response.ok) return;
+        setIsLoading(true);
+        const response = await fetch('http://localhost:3001/campaigns', { signal: controller.signal, cache: 'no-store' });
+        if (!response.ok) throw new Error('Network error');
         const data: Campaign[] = await response.json();
-        if (isMounted) setCampaigns(Array.isArray(data) ? data : []);
+        setCampaigns(Array.isArray(data) ? data : []);
+        try { sessionStorage.setItem('campaigns', JSON.stringify(Array.isArray(data) ? data : [])); } catch {}
       } catch (error) {
-        // Échec silencieux pour ne pas casser la page
-        if (isMounted) setCampaigns([]);
+        if ((error as any)?.name !== 'AbortError') {
+          setCampaigns([]);
+        }
+      } finally {
+        setIsLoading(false);
       }
     };
+
     fetchCampaigns();
-    return () => {
-      isMounted = false;
-    };
+    return () => controller.abort();
   }, []);
 
   const openImage = (imageSrc?: string | null) => {
@@ -81,9 +116,7 @@ const HomePage: React.FC = memo(() => {
       } else {
         window.open(url, '_blank', 'noopener,noreferrer');
       }
-    } catch (_) {
-      // ignore
-    }
+    } catch (_) {}
   };
 
   const handleLike = (campaignId: number) => {
@@ -99,14 +132,12 @@ const HomePage: React.FC = memo(() => {
   };
 
   const submitComment = (campaignId: number) => {
-    // Pour l’instant, on garde local. Plus tard: persistance côté serveur/admin.
     setCommentTexts((prev) => ({ ...prev, [campaignId]: '' }));
     alert('Commentaire envoyé (stockage local temporaire).');
   };
 
   return (
     <div className="w-full p-3 sm:p-4 space-y-4 min-h-full">
-      {/* Header avec animation */}
       <div className={`mb-6 transition-all duration-700 ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
       }`}>
@@ -114,7 +145,22 @@ const HomePage: React.FC = memo(() => {
         <p className="text-gray-600">Restez informé des dernières campagnes et initiatives</p>
       </div>
 
-      {campaigns.map((campaign, index) => (
+      {isLoading && (
+        <div className="space-y-4">
+          {[0,1,2].map((i) => (
+            <div key={i} className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+              <div className="w-full h-56 bg-gray-200 animate-pulse" />
+              <div className="p-6">
+                <div className="h-4 w-32 bg-gray-200 rounded mb-2 animate-pulse" />
+                <div className="h-3 w-64 bg-gray-200 rounded mb-2 animate-pulse" />
+                <div className="h-3 w-48 bg-gray-200 rounded animate-pulse" />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!isLoading && campaigns.map((campaign, index) => (
         <div
           key={campaign.id}
           className={`bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ${
@@ -122,12 +168,12 @@ const HomePage: React.FC = memo(() => {
           }`}
           style={{ animationDelay: `${index * 200}ms` }}
         >
-          {/* Image du post */}
           <div className="relative">
-              <img 
+            <img 
               src={(campaign.imageUrl || campaign.thumbnailUrl || getTitleImage(campaign.title) || defaultImage) || ''}
               alt={campaign.title}
               className="w-full h-56 object-cover cursor-zoom-in"
+              loading="lazy"
               onClick={() => openImage(campaign.imageUrl || campaign.thumbnailUrl || getTitleImage(campaign.title) || defaultImage)}
               onError={(e) => { (e.currentTarget as HTMLImageElement).src = getTitleImage(campaign.title); }}
             />
@@ -147,11 +193,10 @@ const HomePage: React.FC = memo(() => {
                   </div>
                 )}
               </div>
-              </div>
             </div>
+          </div>
 
           <div className="p-6">
-            {/* Header du post */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
@@ -173,7 +218,6 @@ const HomePage: React.FC = memo(() => {
               </div>
             </div>
 
-            {/* Contenu du post */}
             <div className="mb-4">
               <h3 className="text-lg font-bold text-gray-800 mb-2">
                 {campaign.title}
@@ -184,7 +228,7 @@ const HomePage: React.FC = memo(() => {
                 </div>
               )}
               <p className="text-gray-700 leading-relaxed">{campaign.description || '—'}</p>
-              {(campaign.officialUrl || campaign.link) && (
+              {campaign.link && (
                 <div className="mt-3">
                   <button
                     className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors"
@@ -196,7 +240,6 @@ const HomePage: React.FC = memo(() => {
               )}
             </div>
 
-            {/* Actions du post */}
             <div className="flex items-center justify-between pt-4 border-t border-gray-100">
               <div className="flex items-center space-x-6">
                 <button className="flex items-center space-x-2 text-gray-600 hover:text-red-500 transition-colors" onClick={() => handleLike(campaign.id)}>
@@ -233,7 +276,6 @@ const HomePage: React.FC = memo(() => {
         </div>
       ))}
 
-      {/* Call to action */}
       <div className={`bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-6 text-white text-center ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
       }`} style={{ animationDelay: '600ms' }}>
@@ -244,7 +286,6 @@ const HomePage: React.FC = memo(() => {
         </button>
       </div>
 
-      {/* Modale d'image */}
       {isImageModalOpen && activeImageSrc && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onClick={() => { setIsImageModalOpen(false); setActiveImageSrc(null); }}>
           <div className="relative max-w-3xl w-[90%]" onClick={(e) => e.stopPropagation()}>
