@@ -32,7 +32,7 @@ import {
   emergencyContactApi,
   pregnancyApi,
   appointmentApi
-} from '../services/api';
+} from '../services/api-simple';
 import type { 
   User, 
   DoctorPatient, 
@@ -40,7 +40,7 @@ import type {
   MedicalPrescription,
   EmergencyContact,
   PregnancyRecord
-} from '../services/api';
+} from '../services/api-simple';
 
 const DoctorDashboardPage: React.FC = () => {
   const [patients, setPatients] = useState<User[]>([]);
