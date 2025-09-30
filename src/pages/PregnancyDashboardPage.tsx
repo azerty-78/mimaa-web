@@ -53,6 +53,9 @@ const PregnancyDashboardPage: React.FC = memo(() => {
   const [apptFilter, setApptFilter] = useState<'upcoming' | 'past' | 'all'>('upcoming');
   const [showUltrasoundModal, setShowUltrasoundModal] = useState(false);
   const [usForm, setUsForm] = useState<{ date: string; lengthCm: string; estimatedWeightGrams: string; summary: string }>({ date: '', lengthCm: '', estimatedWeightGrams: '', summary: '' });
+  const [symptomFilter, setSymptomFilter] = useState<'all' | 'léger' | 'modéré' | 'sévère'>('all');
+  const [symptomQuery, setSymptomQuery] = useState('');
+  const [medQuery, setMedQuery] = useState('');
   const [savingAppt, setSavingAppt] = useState(false);
   const [apptForm, setApptForm] = useState<{ date: string; type: string; notes: string }>({
     date: '',
@@ -108,6 +111,12 @@ const PregnancyDashboardPage: React.FC = memo(() => {
       }
     };
     load();
+  }, [user]);
+
+  useEffect(() => {
+    const handler = () => { refresh(); };
+    window.addEventListener('pregnancyDataUpdated', handler as any);
+    return () => window.removeEventListener('pregnancyDataUpdated', handler as any);
   }, [user]);
 
   const refresh = async () => {
@@ -170,6 +179,19 @@ const PregnancyDashboardPage: React.FC = memo(() => {
       .filter(a => apptFilter === 'upcoming' ? new Date(a.date).getTime() >= now : new Date(a.date).getTime() < now)
       .sort((a,b)=> new Date(a.date).getTime()-new Date(b.date).getTime());
   }, [appointments, apptFilter]);
+
+  const filteredSymptoms = useMemo(() => {
+    let list = record?.symptoms || [];
+    if (symptomFilter !== 'all') list = list.filter(s => s.severity === symptomFilter);
+    if (symptomQuery.trim()) list = list.filter(s => s.name.toLowerCase().includes(symptomQuery.toLowerCase()));
+    return list;
+  }, [record?.symptoms, symptomFilter, symptomQuery]);
+
+  const filteredMeds = useMemo(() => {
+    let list = record?.medications || [];
+    if (medQuery.trim()) list = list.filter(m => `${m.name} ${m.dose} ${m.frequency}`.toLowerCase().includes(medQuery.toLowerCase()));
+    return list;
+  }, [record?.medications, medQuery]);
 
   const openApptModal = () => {
     const nextWeek = new Date();
@@ -305,8 +327,17 @@ const PregnancyDashboardPage: React.FC = memo(() => {
 
         {/* Symptômes actuels */}
         <Card title="Symptômes actuels" className="bg-[#fff1df] mb-4">
+          <div className="flex items-center gap-2 mb-2 text-sm">
+            <input value={symptomQuery} onChange={e=> setSymptomQuery(e.target.value)} placeholder="Rechercher…" className="flex-1 rounded-xl border border-gray-300 p-2 bg-white" />
+            <select value={symptomFilter} onChange={e=> setSymptomFilter(e.target.value as any)} className="rounded-xl border border-gray-300 p-2 bg-white">
+              <option value="all">Tous</option>
+              <option value="léger">Léger</option>
+              <option value="modéré">Modéré</option>
+              <option value="sévère">Sévère</option>
+            </select>
+          </div>
           <div className="space-y-2">
-            {(record?.symptoms || []).map((s) => (
+            {filteredSymptoms.map((s) => (
               <div key={s.name} className="flex items-center justify-between p-3 rounded-xl bg-white">
                 <div className="flex items-center gap-3">
                   <span className={`w-2.5 h-2.5 rounded-full ${s.severity === 'léger' ? 'bg-green-500' : s.severity === 'modéré' ? 'bg-orange-500' : 'bg-red-500'}`}></span>
@@ -318,7 +349,7 @@ const PregnancyDashboardPage: React.FC = memo(() => {
                 <div>›</div>
               </div>
             ))}
-            {(!record?.symptoms || record.symptoms.length === 0) && (
+            {filteredSymptoms.length === 0 && (
               <div className="p-3 rounded-xl bg-white text-sm text-gray-600">Aucun symptôme déclaré.</div>
             )}
             <div className="pt-1 text-center">
@@ -343,14 +374,17 @@ const PregnancyDashboardPage: React.FC = memo(() => {
 
         {/* Médicaments */}
         <Card title="Médicaments" className="bg-[#e6f3ff] mb-4">
+          <div className="flex items-center gap-2 mb-2 text-sm">
+            <input value={medQuery} onChange={e=> setMedQuery(e.target.value)} placeholder="Rechercher…" className="w-full rounded-xl border border-gray-300 p-2 bg-white" />
+          </div>
           <div className="space-y-2">
-            {(record?.medications || []).map(med => (
+            {filteredMeds.map(med => (
               <div key={med.name} className="p-3 rounded-xl bg-white">
                 <div className="font-medium">{med.name}</div>
                 <div className="text-sm text-gray-600">{med.dose} • {med.frequency}</div>
               </div>
             ))}
-            {(!record?.medications || record.medications.length === 0) && (
+            {filteredMeds.length === 0 && (
               <div className="p-3 rounded-xl bg-white text-sm text-gray-600">Aucun médicament enregistré.</div>
             )}
             <div className="pt-1 text-center">

@@ -143,6 +143,8 @@ const ProfilePage: React.FC = memo(() => {
         }
       });
       setRecord(updated);
+      // Notifier le dashboard qu'il doit se rafraîchir
+      window.dispatchEvent(new Event('pregnancyDataUpdated'));
     } finally {
       setSavingMedical(false);
     }
