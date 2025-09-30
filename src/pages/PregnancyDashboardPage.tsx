@@ -1,6 +1,7 @@
 import React, { memo, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { appointmentApi, pregnancyApi, type Appointment, type PregnancyRecord } from '../services/api';
+import { useToast } from '../components/ToastProvider';
 
 const Card: React.FC<{ title: string; subtitle?: string; className?: string; children?: React.ReactNode }> = ({ title, subtitle, className, children }) => (
   <div className={`rounded-2xl p-4 sm:p-5 shadow border border-black/5 ${className || ''}`}>
@@ -39,6 +40,7 @@ const CircularProgress: React.FC<{ percent: number }> = ({ percent }) => (
 
 const PregnancyDashboardPage: React.FC = memo(() => {
   const { user } = useAuth();
+  const { show } = useToast();
   const [isVisible, setIsVisible] = useState(false);
   const [record, setRecord] = useState<PregnancyRecord | null>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -235,8 +237,10 @@ const PregnancyDashboardPage: React.FC = memo(() => {
       const created = await appointmentApi.create(toCreate);
       setAppointments(prev => [...prev, created]);
       setShowApptModal(false);
+      show('Rendez-vous enregistré', 'success');
     } catch (e) {
       console.error('Erreur sauvegarde RDV:', e);
+      show('Échec enregistrement du rendez-vous', 'error');
     } finally {
       setSavingAppt(false);
     }
@@ -369,7 +373,7 @@ const PregnancyDashboardPage: React.FC = memo(() => {
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <button className="text-blue-700 underline" onClick={() => { setSymptomForm({ name: s.name, severity: s.severity as any }); setShowSymptomModal(true); }}>Éditer</button>
-                  <button className="text-red-600 underline" onClick={async () => { if (!record) return; const updated = await pregnancyApi.removeSymptom(record, s.name); setRecord(updated); }}>Supprimer</button>
+                  <button className="text-red-600 underline" onClick={async () => { if (!record) return; const updated = await pregnancyApi.removeSymptom(record, s.name); setRecord(updated); show('Symptôme supprimé', 'success'); }}>Supprimer</button>
                 </div>
               </div>
             ))}
@@ -408,7 +412,7 @@ const PregnancyDashboardPage: React.FC = memo(() => {
                 <div className="text-sm text-gray-600">{med.dose} • {med.frequency}</div>
                 <div className="mt-2 flex items-center gap-2 text-sm">
                   <button className="text-blue-700 underline" onClick={() => { setMedForm({ name: med.name, dose: med.dose, frequency: med.frequency }); setShowMedicationModal(true); }}>Éditer</button>
-                  <button className="text-red-600 underline" onClick={async () => { if (!record) return; const updated = await pregnancyApi.removeMedication(record, med.name); setRecord(updated); }}>Supprimer</button>
+                  <button className="text-red-600 underline" onClick={async () => { if (!record) return; const updated = await pregnancyApi.removeMedication(record, med.name); setRecord(updated); show('Médicament supprimé', 'success'); }}>Supprimer</button>
                 </div>
               </div>
             ))}
@@ -539,7 +543,7 @@ const PregnancyDashboardPage: React.FC = memo(() => {
             </div>
             <div className="flex items-center justify-end mt-4 gap-2">
               <button onClick={() => setShowSymptomModal(false)} className="px-4 py-2 rounded-xl bg-gray-200">Annuler</button>
-              <button onClick={async () => { const updated = await pregnancyApi.addSymptom(record, symptomForm); setRecord(updated); setShowSymptomModal(false); }} className="px-4 py-2 rounded-xl bg-green-600 text-white">Enregistrer</button>
+              <button onClick={async () => { const updated = await pregnancyApi.addSymptom(record, symptomForm); setRecord(updated); setShowSymptomModal(false); show('Symptôme ajouté', 'success'); }} className="px-4 py-2 rounded-xl bg-green-600 text-white">Enregistrer</button>
             </div>
           </div>
         </div>
@@ -569,7 +573,7 @@ const PregnancyDashboardPage: React.FC = memo(() => {
             </div>
             <div className="flex items-center justify-end mt-4 gap-2">
               <button onClick={() => setShowMedicationModal(false)} className="px-4 py-2 rounded-xl bg-gray-200">Annuler</button>
-              <button onClick={async () => { const updated = await pregnancyApi.addMedication(record, medForm); setRecord(updated); setShowMedicationModal(false); }} className="px-4 py-2 rounded-xl bg-green-600 text-white">Enregistrer</button>
+              <button onClick={async () => { const updated = await pregnancyApi.addMedication(record, medForm); setRecord(updated); setShowMedicationModal(false); show('Médicament ajouté', 'success'); }} className="px-4 py-2 rounded-xl bg-green-600 text-white">Enregistrer</button>
             </div>
           </div>
         </div>
@@ -627,7 +631,7 @@ const PregnancyDashboardPage: React.FC = memo(() => {
             </div>
             <div className="flex items-center justify-end mt-4 gap-2">
               <button onClick={()=> setShowUltrasoundModal(false)} className="px-4 py-2 rounded-xl bg-gray-200">Annuler</button>
-              <button onClick={async ()=> { const u = { date: new Date(usForm.date).toISOString(), lengthCm: Number(usForm.lengthCm), estimatedWeightGrams: Number(usForm.estimatedWeightGrams), summary: usForm.summary }; const updated = await pregnancyApi.addUltrasound(record, u); setRecord(updated); setShowUltrasoundModal(false); }} className="px-4 py-2 rounded-xl bg-green-600 text-white">Enregistrer</button>
+              <button onClick={async ()=> { const u = { date: new Date(usForm.date).toISOString(), lengthCm: Number(usForm.lengthCm), estimatedWeightGrams: Number(usForm.estimatedWeightGrams), summary: usForm.summary }; const updated = await pregnancyApi.addUltrasound(record, u); setRecord(updated); setShowUltrasoundModal(false); show('Échographie enregistrée', 'success'); }} className="px-4 py-2 rounded-xl bg-green-600 text-white">Enregistrer</button>
             </div>
           </div>
         </div>

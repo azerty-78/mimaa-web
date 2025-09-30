@@ -250,10 +250,10 @@
       "bmi": 22.8,
       "babyName": "Emma",
       "ultrasound": {
-        "date": "2025-08-26",
-        "summary": "Échographie morphologique — développement normal",
-        "estimatedWeightGrams": 600,
-        "lengthCm": 30
+        "date": "2025-09-30T09:27:00.000Z",
+        "lengthCm": 0,
+        "estimatedWeightGrams": 0,
+        "summary": ""
       },
       "ultrasounds": [
         {
@@ -267,6 +267,12 @@
           "summary": "Échographie T2 — développement normal",
           "estimatedWeightGrams": 600,
           "lengthCm": 30
+        },
+        {
+          "date": "2025-09-30T09:27:00.000Z",
+          "lengthCm": 0,
+          "estimatedWeightGrams": 0,
+          "summary": ""
         }
       ],
       "symptoms": [

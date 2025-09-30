@@ -2,9 +2,11 @@ import React, { useState, memo, useEffect } from 'react';
 import { Edit, Person, Email, Phone, LocationOn, CameraAlt, Save, Close, Verified, TrendingUp, Message, Campaign, PictureAsPdf } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
 import { pregnancyApi, type PregnancyRecord } from '../services/api';
+import { useToast } from '../components/ToastProvider';
 
 const ProfilePage: React.FC = memo(() => {
   const { user, updateProfile } = useAuth();
+  const { show } = useToast();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
@@ -117,8 +119,10 @@ const ProfilePage: React.FC = memo(() => {
       };
       await updateProfile(updatedData);
       setIsEditModalOpen(false);
+      show('Profil mis à jour avec succès', 'success');
     } catch (error) {
       setError('Erreur lors de la mise à jour du profil');
+      show('Échec de la mise à jour du profil', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -145,6 +149,7 @@ const ProfilePage: React.FC = memo(() => {
       setRecord(updated);
       // Notifier le dashboard qu'il doit se rafraîchir
       window.dispatchEvent(new Event('pregnancyDataUpdated'));
+      show('Paramètres médicaux sauvegardés', 'success');
     } finally {
       setSavingMedical(false);
     }
