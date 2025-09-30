@@ -37,7 +37,6 @@ const typeStyles: Record<ToastType, { bg: string; icon: string }> = {
 
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const [nextId, setNextId] = useState(1);
   const timers = useRef<Record<number, number>>({});
 
   const dismiss = useCallback((id: number) => {
@@ -49,8 +48,8 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const show = useCallback((message: string, type: ToastType = 'info', options?: ToastOptions) => {
-    const id = nextId;
-    setNextId(id + 1);
+    // Utiliser timestamp + random pour garantir l'unicité
+    const id = Date.now() + Math.random();
     const duration = options?.duration ?? 3000;
     const toast: Toast = { id, message, type, createdAt: Date.now(), duration };
     setToasts((prev) => {
@@ -59,7 +58,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return next.slice(-MAX_TOASTS);
     });
     timers.current[id] = window.setTimeout(() => dismiss(id), duration);
-  }, [nextId, dismiss]);
+  }, [dismiss]);
 
   // Nettoyage timers
   useEffect(() => () => {
