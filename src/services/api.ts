@@ -120,7 +120,7 @@ export interface Appointment {
 
 // Fonction utilitaire pour les requêtes
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
+  let url = `${API_BASE_URL}${endpoint}`;
   const config: RequestInit = {
     headers: {
       'Content-Type': 'application/json',
@@ -135,6 +135,14 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     
     if (!response.ok) {
       console.error('API request failed:', response.status, response.statusText);
+      // Fallback dev: si on utilise '/api' et que ça échoue, réessayer localhost:3001
+      if (API_BASE_URL === '/api') {
+        const fallbackUrl = `http://localhost:3001${endpoint}`;
+        console.warn('Retrying request with fallback URL:', fallbackUrl);
+        const retry = await fetch(fallbackUrl, config);
+        if (!retry.ok) throw new Error(`HTTP error! status: ${retry.status}`);
+        return await retry.json();
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     

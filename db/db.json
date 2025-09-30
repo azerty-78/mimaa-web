@@ -306,8 +306,12 @@
         "fastingGlucoseMgDl": 89,
         "hemoglobinGdl": 11.8,
         "bmi": 22.8,
-        "preExistingConditions": ["anémie légère"],
-        "allergies": ["pénicilline"],
+        "preExistingConditions": [
+          "anémie légère"
+        ],
+        "allergies": [
+          "pénicilline"
+        ],
         "riskFlags": []
       },
       "notes": "Grossesse sans complication à ce stade."
@@ -343,6 +347,22 @@
       "userId": 2,
       "type": "Échographie",
       "date": "2025-10-07T08:07:00.000Z",
+      "status": "scheduled",
+      "notes": ""
+    },
+    {
+      "id": 5,
+      "userId": 2,
+      "type": "Consultation prénatale",
+      "date": "2025-10-07T08:38:00.000Z",
+      "status": "scheduled",
+      "notes": ""
+    },
+    {
+      "id": 6,
+      "userId": 2,
+      "type": "Analyse de sang",
+      "date": "2025-10-11T08:38:00.000Z",
       "status": "scheduled",
       "notes": ""
     }

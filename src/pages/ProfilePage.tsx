@@ -1,6 +1,7 @@
 import React, { useState, memo, useEffect } from 'react';
-import { Edit, Person, Email, Phone, LocationOn, CameraAlt, Save, Close, Verified, TrendingUp, Message, Campaign } from '@mui/icons-material';
+import { Edit, Person, Email, Phone, LocationOn, CameraAlt, Save, Close, Verified, TrendingUp, Message, Campaign, PictureAsPdf } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
+import { pregnancyApi, type PregnancyRecord } from '../services/api';
 
 const ProfilePage: React.FC = memo(() => {
   const { user, updateProfile } = useAuth();
@@ -17,10 +18,37 @@ const ProfilePage: React.FC = memo(() => {
     region: user?.region || '',
     profileImage: null as File | null
   });
+  const [record, setRecord] = useState<PregnancyRecord | null>(null);
+  const [medParamsForm, setMedParamsForm] = useState({
+    systolicMmHg: '',
+    diastolicMmHg: '',
+    fastingGlucoseMgDl: '',
+    hemoglobinGdl: '',
+    babyName: '',
+    weightKg: '',
+  });
+  const [savingMedical, setSavingMedical] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
+
+  useEffect(() => {
+    const load = async () => {
+      if (!user || user.profileType !== 'pregnant_woman') return;
+      const pr = await pregnancyApi.getByUserId(user.id);
+      setRecord(pr);
+      setMedParamsForm({
+        systolicMmHg: pr?.medicalParams?.systolicMmHg?.toString() || '',
+        diastolicMmHg: pr?.medicalParams?.diastolicMmHg?.toString() || '',
+        fastingGlucoseMgDl: pr?.medicalParams?.fastingGlucoseMgDl?.toString() || '',
+        hemoglobinGdl: pr?.medicalParams?.hemoglobinGdl?.toString() || '',
+        babyName: pr?.babyName || '',
+        weightKg: pr?.weightKg?.toString() || '',
+      });
+    };
+    load();
+  }, [user]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -38,13 +66,11 @@ const ProfilePage: React.FC = memo(() => {
         setError('La taille de l\'image ne doit pas dépasser 5MB');
         return;
       }
-      
       // Vérifier le type de fichier
       if (!file.type.startsWith('image/')) {
         setError('Veuillez sélectionner un fichier image valide');
         return;
       }
-      
       setFormData(prev => ({
         ...prev,
         profileImage: file
@@ -70,9 +96,7 @@ const ProfilePage: React.FC = memo(() => {
   const handleSave = async () => {
     setIsLoading(true);
     setError('');
-    
     try {
-      // Convertir l'image en base64 si elle existe
       let profileImageBase64 = user?.profileImage || null;
       if (formData.profileImage) {
         profileImageBase64 = await new Promise<string>((resolve, reject) => {
@@ -82,7 +106,6 @@ const ProfilePage: React.FC = memo(() => {
           reader.readAsDataURL(formData.profileImage!);
         });
       }
-      
       const updatedData = {
         username: formData.username,
         email: formData.email,
@@ -92,7 +115,6 @@ const ProfilePage: React.FC = memo(() => {
         region: formData.region,
         profileImage: profileImageBase64,
       };
-      
       await updateProfile(updatedData);
       setIsEditModalOpen(false);
     } catch (error) {
@@ -100,6 +122,48 @@ const ProfilePage: React.FC = memo(() => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const saveMedicalParams = async () => {
+    if (!user || !record) return;
+    setSavingMedical(true);
+    try {
+      const updated = await pregnancyApi.update(record.id, {
+        babyName: medParamsForm.babyName || undefined,
+        weightKg: medParamsForm.weightKg ? Number(medParamsForm.weightKg) : record.weightKg,
+        medicalParams: {
+          systolicMmHg: medParamsForm.systolicMmHg ? Number(medParamsForm.systolicMmHg) : (record.medicalParams?.systolicMmHg || 0),
+          diastolicMmHg: medParamsForm.diastolicMmHg ? Number(medParamsForm.diastolicMmHg) : (record.medicalParams?.diastolicMmHg || 0),
+          fastingGlucoseMgDl: medParamsForm.fastingGlucoseMgDl ? Number(medParamsForm.fastingGlucoseMgDl) : (record.medicalParams?.fastingGlucoseMgDl || 0),
+          hemoglobinGdl: medParamsForm.hemoglobinGdl ? Number(medParamsForm.hemoglobinGdl) : (record.medicalParams?.hemoglobinGdl || 0),
+          bmi: record.bmi,
+          preExistingConditions: record.medicalParams?.preExistingConditions || [],
+          allergies: record.medicalParams?.allergies || [],
+          riskFlags: record.medicalParams?.riskFlags || [],
+        }
+      });
+      setRecord(updated);
+    } finally {
+      setSavingMedical(false);
+    }
+  };
+
+  const exportPdf = () => {
+    // Simple export: ouvrir une nouvelle fenêtre avec contenu imprimable
+    const w = window.open('', '_blank');
+    if (!w || !record) return;
+    w.document.write(`<html><head><title>Dossier grossesse</title></head><body>`);
+    w.document.write(`<h1>Dossier de ${user?.firstName || ''} ${user?.lastName || ''}</h1>`);
+    w.document.write(`<p>DPA: ${record.dueDate} — Semaine: ${record.currentWeek}</p>`);
+    w.document.write(`<p>Bébé: ${record.babyName || '-'}</p>`);
+    w.document.write(`<h3>Paramètres médicaux</h3>`);
+    w.document.write(`<pre>${JSON.stringify(record.medicalParams, null, 2)}</pre>`);
+    if (record.ultrasounds?.length) {
+      w.document.write(`<h3>Échographies</h3><pre>${JSON.stringify(record.ultrasounds, null, 2)}</pre>`);
+    }
+    w.document.write(`</body></html>`);
+    w.document.close();
+    w.print();
   };
 
   const getProfileTypeLabel = (profileType: string) => {
@@ -181,7 +245,7 @@ const ProfilePage: React.FC = memo(() => {
         </div>
       </div>
 
-      {/* Statistiques avec animations */}
+      {/* Statistiques */}
       <div className={`grid grid-cols-3 gap-4 mb-6 ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
       } transition-all duration-700`} style={{ animationDelay: '200ms' }}>
@@ -271,6 +335,48 @@ const ProfilePage: React.FC = memo(() => {
             </div>
           </div>
         </div>
+
+        {/* Section Paramètres médicaux (visible pour femme enceinte) */}
+        {user.profileType === 'pregnant_woman' && (
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-5">
+            <h3 className="font-semibold text-gray-800 mb-4 flex items-center">Paramètres médicaux</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm text-gray-600">Nom du bébé</label>
+                <input value={medParamsForm.babyName} onChange={e=> setMedParamsForm({ ...medParamsForm, babyName: e.target.value })} className="w-full rounded-lg border border-gray-300 p-2" />
+              </div>
+              <div>
+                <label className="text-sm text-gray-600">Poids (kg)</label>
+                <input type="number" value={medParamsForm.weightKg} onChange={e=> setMedParamsForm({ ...medParamsForm, weightKg: e.target.value })} className="w-full rounded-lg border border-gray-300 p-2" />
+              </div>
+              <div>
+                <label className="text-sm text-gray-600">Tension systolique</label>
+                <input type="number" value={medParamsForm.systolicMmHg} onChange={e=> setMedParamsForm({ ...medParamsForm, systolicMmHg: e.target.value })} className="w-full rounded-lg border border-gray-300 p-2" />
+              </div>
+              <div>
+                <label className="text-sm text-gray-600">Tension diastolique</label>
+                <input type="number" value={medParamsForm.diastolicMmHg} onChange={e=> setMedParamsForm({ ...medParamsForm, diastolicMmHg: e.target.value })} className="w-full rounded-lg border border-gray-300 p-2" />
+              </div>
+              <div>
+                <label className="text-sm text-gray-600">Glycémie à jeun (mg/dL)</label>
+                <input type="number" value={medParamsForm.fastingGlucoseMgDl} onChange={e=> setMedParamsForm({ ...medParamsForm, fastingGlucoseMgDl: e.target.value })} className="w-full rounded-lg border border-gray-300 p-2" />
+              </div>
+              <div>
+                <label className="text-sm text-gray-600">Hémoglobine (g/dL)</label>
+                <input type="number" value={medParamsForm.hemoglobinGdl} onChange={e=> setMedParamsForm({ ...medParamsForm, hemoglobinGdl: e.target.value })} className="w-full rounded-lg border border-gray-300 p-2" />
+              </div>
+            </div>
+            <div className="mt-4 flex items-center gap-3">
+              <button onClick={saveMedicalParams} disabled={savingMedical || !record} className="px-4 py-2 rounded-xl bg-green-600 text-white disabled:opacity-50">{savingMedical ? 'Sauvegarde…' : 'Enregistrer'}</button>
+              <button onClick={exportPdf} className="px-4 py-2 rounded-xl bg-red-600 text-white flex items-center gap-2"><PictureAsPdf className="w-4 h-4" /> Exporter PDF</button>
+            </div>
+            {record && (
+              <div className="mt-4 text-sm text-gray-700">
+                <div>Dernière écho: {record.ultrasound?.date ? new Date(record.ultrasound.date).toLocaleDateString() : '—'}; Taille: {record.ultrasound?.lengthCm || '—'} cm; Poids estimé: {record.ultrasound?.estimatedWeightGrams || '—'} g</div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Bottom Sheet de modification */}
