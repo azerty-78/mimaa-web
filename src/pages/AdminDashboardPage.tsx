@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useToast } from '../components/ToastProvider';
-import { Add, Edit, Delete, Save, Close, People, Person, PersonAdd, Block, CheckCircle } from '@mui/icons-material';
+import { Add, Edit, Delete, Save, Close, People, Person, PersonAdd, Block, CheckCircle, Search, FilterList, Download, Clear } from '@mui/icons-material';
 import { campaignApi, userApi, type Campaign, type User } from '../services/api';
 
 const emptyCampaign: Campaign = {
@@ -24,6 +24,9 @@ const AdminDashboardPage: React.FC = () => {
   const [showUserForm, setShowUserForm] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'campaigns' | 'users'>('campaigns');
+  const [userSearch, setUserSearch] = useState('');
+  const [userFilter, setUserFilter] = useState<'all' | 'active' | 'inactive' | 'pregnant_woman' | 'doctor' | 'administrator'>('all');
+  const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
 
   const fetchItems = async () => {
     try {
@@ -145,6 +148,106 @@ const AdminDashboardPage: React.FC = () => {
     return { total, active, pregnant, doctors, admins };
   }, [users]);
 
+  const filteredUsers = useMemo(() => {
+    let filtered = users;
+    
+    // Filtre par statut
+    if (userFilter === 'active') filtered = filtered.filter(u => u.isActive);
+    else if (userFilter === 'inactive') filtered = filtered.filter(u => !u.isActive);
+    else if (userFilter !== 'all') filtered = filtered.filter(u => u.profileType === userFilter);
+    
+    // Recherche par nom/email
+    if (userSearch.trim()) {
+      const query = userSearch.toLowerCase();
+      filtered = filtered.filter(u => 
+        u.firstName.toLowerCase().includes(query) ||
+        u.lastName.toLowerCase().includes(query) ||
+        u.email.toLowerCase().includes(query)
+      );
+    }
+    
+    return filtered;
+  }, [users, userFilter, userSearch]);
+
+  const handleSelectUser = (userId: number) => {
+    setSelectedUsers(prev => 
+      prev.includes(userId) 
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedUsers.length === filteredUsers.length) {
+      setSelectedUsers([]);
+    } else {
+      setSelectedUsers(filteredUsers.map(u => u.id));
+    }
+  };
+
+  const bulkActivate = async () => {
+    try {
+      const promises = selectedUsers.map(id => 
+        userApi.update(id, { isActive: true })
+      );
+      await Promise.all(promises);
+      await fetchUsers();
+      setSelectedUsers([]);
+      toast.show(`${selectedUsers.length} utilisateur(s) activé(s)`, 'success');
+    } catch (e: any) {
+      toast.show('Erreur lors de l\'activation en lot', 'error');
+    }
+  };
+
+  const bulkDeactivate = async () => {
+    try {
+      const promises = selectedUsers.map(id => 
+        userApi.update(id, { isActive: false })
+      );
+      await Promise.all(promises);
+      await fetchUsers();
+      setSelectedUsers([]);
+      toast.show(`${selectedUsers.length} utilisateur(s) désactivé(s)`, 'success');
+    } catch (e: any) {
+      toast.show('Erreur lors de la désactivation en lot', 'error');
+    }
+  };
+
+  const bulkDelete = async () => {
+    if (!confirm(`Supprimer ${selectedUsers.length} utilisateur(s) ?`)) return;
+    try {
+      const promises = selectedUsers.map(id => userApi.delete(id));
+      await Promise.all(promises);
+      await fetchUsers();
+      setSelectedUsers([]);
+      toast.show(`${selectedUsers.length} utilisateur(s) supprimé(s)`, 'success');
+    } catch (e: any) {
+      toast.show('Erreur lors de la suppression en lot', 'error');
+    }
+  };
+
+  const exportUsers = () => {
+    const csvContent = [
+      ['Nom', 'Email', 'Type', 'Statut', 'Date création'].join(','),
+      ...filteredUsers.map(u => [
+        `"${u.firstName} ${u.lastName}"`,
+        `"${u.email}"`,
+        `"${u.profileType}"`,
+        `"${u.isActive ? 'Actif' : 'Inactif'}"`,
+        `"${new Date(u.createdAt || '').toLocaleDateString()}"`
+      ].join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `utilisateurs_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.show('Export CSV généré', 'success');
+  };
+
   const Form = useMemo(() => (
     !showForm || !editing ? null : (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={cancelForm}>
@@ -205,7 +308,7 @@ const AdminDashboardPage: React.FC = () => {
           <p className="text-gray-600">Gérez vos campagnes et utilisateurs</p>
         </div>
         <div className="flex gap-2">
-          <button className="inline-flex items-center px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700" onClick={startCreate}><Add className="mr-1" /> Nouvelle campagne</button>
+        <button className="inline-flex items-center px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700" onClick={startCreate}><Add className="mr-1" /> Nouvelle campagne</button>
           <button className="inline-flex items-center px-3 py-2 rounded bg-green-600 text-white hover:bg-green-700" onClick={() => setShowUserForm(true)}><PersonAdd className="mr-1" /> Nouvel utilisateur</button>
         </div>
       </div>
@@ -232,32 +335,116 @@ const AdminDashboardPage: React.FC = () => {
 
       {/* Statistiques utilisateurs */}
       {activeTab === 'users' && (
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
-          <div className="bg-white rounded-xl shadow p-4 text-center">
-            <People className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-800">{userStats.total}</div>
-            <div className="text-sm text-gray-600">Total</div>
+        <div className="space-y-6">
+          {/* Cartes de statistiques */}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+            <div className="bg-white rounded-xl shadow p-4 text-center">
+              <People className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-gray-800">{userStats.total}</div>
+              <div className="text-sm text-gray-600">Total</div>
+            </div>
+            <div className="bg-white rounded-xl shadow p-4 text-center">
+              <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-gray-800">{userStats.active}</div>
+              <div className="text-sm text-gray-600">Actifs</div>
+            </div>
+            <div className="bg-white rounded-xl shadow p-4 text-center">
+              <Person className="w-8 h-8 text-pink-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-gray-800">{userStats.pregnant}</div>
+              <div className="text-sm text-gray-600">Femmes enceintes</div>
+            </div>
+            <div className="bg-white rounded-xl shadow p-4 text-center">
+              <Person className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-gray-800">{userStats.doctors}</div>
+              <div className="text-sm text-gray-600">Médecins</div>
+            </div>
+            <div className="bg-white rounded-xl shadow p-4 text-center">
+              <Person className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-gray-800">{userStats.admins}</div>
+              <div className="text-sm text-gray-600">Administrateurs</div>
+            </div>
           </div>
-          <div className="bg-white rounded-xl shadow p-4 text-center">
-            <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-800">{userStats.active}</div>
-            <div className="text-sm text-gray-600">Actifs</div>
+
+          {/* Barre de recherche et filtres */}
+          <div className="bg-white rounded-xl shadow p-4">
+            <div className="flex flex-col sm:flex-row gap-4 items-center">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Rechercher par nom ou email..."
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <FilterList className="text-gray-400 w-5 h-5" />
+                <select
+                  value={userFilter}
+                  onChange={(e) => setUserFilter(e.target.value as any)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">Tous les utilisateurs</option>
+                  <option value="active">Actifs uniquement</option>
+                  <option value="inactive">Inactifs uniquement</option>
+                  <option value="pregnant_woman">Femmes enceintes</option>
+                  <option value="doctor">Médecins</option>
+                  <option value="administrator">Administrateurs</option>
+                </select>
+              </div>
+              <button
+                onClick={exportUsers}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              >
+                <Download className="w-4 h-4" />
+                Export CSV
+              </button>
+            </div>
           </div>
-          <div className="bg-white rounded-xl shadow p-4 text-center">
-            <Person className="w-8 h-8 text-pink-600 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-800">{userStats.pregnant}</div>
-            <div className="text-sm text-gray-600">Femmes enceintes</div>
-          </div>
-          <div className="bg-white rounded-xl shadow p-4 text-center">
-            <Person className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-800">{userStats.doctors}</div>
-            <div className="text-sm text-gray-600">Médecins</div>
-          </div>
-          <div className="bg-white rounded-xl shadow p-4 text-center">
-            <Person className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-800">{userStats.admins}</div>
-            <div className="text-sm text-gray-600">Administrateurs</div>
-          </div>
+
+          {/* Actions en lot */}
+          {selectedUsers.length > 0 && (
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-blue-800 font-medium">
+                    {selectedUsers.length} utilisateur(s) sélectionné(s)
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={bulkActivate}
+                    className="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 text-sm"
+                  >
+                    <CheckCircle className="w-4 h-4 inline mr-1" />
+                    Activer
+                  </button>
+                  <button
+                    onClick={bulkDeactivate}
+                    className="px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 text-sm"
+                  >
+                    <Block className="w-4 h-4 inline mr-1" />
+                    Désactiver
+                  </button>
+                  <button
+                    onClick={bulkDelete}
+                    className="px-3 py-1.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 text-sm"
+                  >
+                    <Delete className="w-4 h-4 inline mr-1" />
+                    Supprimer
+                  </button>
+                  <button
+                    onClick={() => setSelectedUsers([])}
+                    className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm"
+                  >
+                    <Clear className="w-4 h-4 inline mr-1" />
+                    Annuler
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -301,10 +488,46 @@ const AdminDashboardPage: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-4">
-          {users.map((user) => (
+          {/* En-tête avec sélection globale */}
+          {filteredUsers.length > 0 && (
+            <div className="bg-gray-50 rounded-xl p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleSelectAll}
+                    className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                      selectedUsers.length === filteredUsers.length
+                        ? 'bg-blue-600 border-blue-600 text-white'
+                        : 'border-gray-300 hover:border-blue-500'
+                    }`}
+                  >
+                    {selectedUsers.length === filteredUsers.length && <CheckCircle className="w-3 h-3" />}
+                  </button>
+                  <span className="text-sm text-gray-600">
+                    {selectedUsers.length === filteredUsers.length ? 'Tout désélectionner' : 'Tout sélectionner'}
+                  </span>
+                </div>
+                <span className="text-sm text-gray-500">
+                  {filteredUsers.length} utilisateur(s) trouvé(s)
+                </span>
+              </div>
+            </div>
+          )}
+
+          {filteredUsers.map((user) => (
             <div key={user.id} className="bg-white rounded-xl shadow p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
+                  <button
+                    onClick={() => handleSelectUser(user.id)}
+                    className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                      selectedUsers.includes(user.id)
+                        ? 'bg-blue-600 border-blue-600 text-white'
+                        : 'border-gray-300 hover:border-blue-500'
+                    }`}
+                  >
+                    {selectedUsers.includes(user.id) && <CheckCircle className="w-3 h-3" />}
+                  </button>
                   <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
                     <Person className="w-6 h-6 text-gray-600" />
                   </div>
@@ -349,6 +572,19 @@ const AdminDashboardPage: React.FC = () => {
               </div>
             </div>
           ))}
+
+          {filteredUsers.length === 0 && (
+            <div className="bg-white rounded-xl shadow p-8 text-center">
+              <Person className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun utilisateur trouvé</h3>
+              <p className="text-gray-500">
+                {userSearch || userFilter !== 'all' 
+                  ? 'Essayez de modifier vos critères de recherche ou de filtre.'
+                  : 'Aucun utilisateur n\'est enregistré dans le système.'
+                }
+              </p>
+            </div>
+          )}
         </div>
       ))}
 
