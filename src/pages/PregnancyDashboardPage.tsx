@@ -45,6 +45,14 @@ const PregnancyDashboardPage: React.FC = memo(() => {
   const [loading, setLoading] = useState(true);
   const [showApptModal, setShowApptModal] = useState(false);
   const [showApptDetails, setShowApptDetails] = useState<Appointment | null>(null);
+  const [showSymptomModal, setShowSymptomModal] = useState(false);
+  const [symptomForm, setSymptomForm] = useState<{ name: string; severity: 'léger' | 'modéré' | 'sévère' }>({ name: '', severity: 'léger' });
+  const [showMedicationModal, setShowMedicationModal] = useState(false);
+  const [medForm, setMedForm] = useState<{ name: string; dose: string; frequency: string }>({ name: '', dose: '', frequency: '' });
+  const [refreshing, setRefreshing] = useState(false);
+  const [apptFilter, setApptFilter] = useState<'upcoming' | 'past' | 'all'>('upcoming');
+  const [showUltrasoundModal, setShowUltrasoundModal] = useState(false);
+  const [usForm, setUsForm] = useState<{ date: string; lengthCm: string; estimatedWeightGrams: string; summary: string }>({ date: '', lengthCm: '', estimatedWeightGrams: '', summary: '' });
   const [savingAppt, setSavingAppt] = useState(false);
   const [apptForm, setApptForm] = useState<{ date: string; type: string; notes: string }>({
     date: '',
@@ -102,6 +110,21 @@ const PregnancyDashboardPage: React.FC = memo(() => {
     load();
   }, [user]);
 
+  const refresh = async () => {
+    if (!user) return;
+    try {
+      setRefreshing(true);
+      const [pr, appts] = await Promise.all([
+        pregnancyApi.getByUserId(user.id),
+        appointmentApi.getByUserId(user.id),
+      ]);
+      setRecord(pr);
+      setAppointments(appts || []);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const nextAppointment = useMemo(() => {
     const future = appointments
       .filter(a => new Date(a.date).getTime() >= Date.now())
@@ -139,6 +162,14 @@ const PregnancyDashboardPage: React.FC = memo(() => {
     }
     return adv;
   }, [record]);
+
+  const filteredAppointments = useMemo(() => {
+    if (apptFilter === 'all') return appointments.slice().sort((a,b)=> new Date(a.date).getTime()-new Date(b.date).getTime());
+    const now = Date.now();
+    return appointments
+      .filter(a => apptFilter === 'upcoming' ? new Date(a.date).getTime() >= now : new Date(a.date).getTime() < now)
+      .sort((a,b)=> new Date(a.date).getTime()-new Date(b.date).getTime());
+  }, [appointments, apptFilter]);
 
   const openApptModal = () => {
     const nextWeek = new Date();
@@ -195,13 +226,16 @@ const PregnancyDashboardPage: React.FC = memo(() => {
           {record?.babyName && (
             <div className="mt-2 text-center text-sm text-gray-700">Bébé: <span className="font-semibold">{record.babyName}</span></div>
           )}
+          <div className="mt-3 text-center">
+            <button onClick={refresh} className="text-blue-700 underline text-sm" disabled={refreshing}>{refreshing ? 'Rafraîchissement…' : 'Rafraîchir'}</button>
+          </div>
         </div>
 
         {/* Stat tuiles */}
         <div className="grid grid-cols-3 gap-3 mb-4">
-          <StatTile color="#0f3d2e" icon={<span>🩺</span>} label="Consultations" value="12" />
-          <StatTile color="#2b1235" icon={<span>💊</span>} label="Médicaments" value="3" />
-          <StatTile color="#3b2411" icon={<span>⚠️</span>} label="Symptômes" value="3" />
+          <StatTile color="#0f3d2e" icon={<span>🩺</span>} label="Consultations" value={`${appointments.length}`} />
+          <StatTile color="#2b1235" icon={<span>💊</span>} label="Médicaments" value={`${record?.medications?.length || 0}`} />
+          <StatTile color="#3b2411" icon={<span>⚠️</span>} label="Symptômes" value={`${record?.symptoms?.length || 0}`} />
         </div>
 
         {/* Développement de bébé */}
@@ -230,13 +264,26 @@ const PregnancyDashboardPage: React.FC = memo(() => {
                 <div className="p-2 rounded-xl bg-white"><div className="text-gray-500">Hb</div><div className="font-semibold">{record.medicalParams.hemoglobinGdl} g/dL</div></div>
               </div>
             )}
+            <div className="mt-3 flex items-center justify-between">
+              <button onClick={() => { const d = new Date(); setUsForm({ date: d.toISOString().slice(0,16), lengthCm: '', estimatedWeightGrams: '', summary: '' }); setShowUltrasoundModal(true); }} className="text-blue-700 underline text-sm">Nouvelle échographie</button>
+              {record?.ultrasounds && record.ultrasounds.length > 0 && (
+                <button onClick={() => document.getElementById('us-history')?.scrollIntoView({ behavior: 'smooth' })} className="text-blue-700 underline text-sm">Voir l'historique</button>
+              )}
+            </div>
           </div>
         </Card>
 
         {/* Prochains RDV */}
         <Card title="Prochains RDV" className="bg-[#eaf8ef] mb-4">
+          <div className="flex items-center gap-2 mb-2 text-sm">
+            <button className={`${apptFilter==='upcoming'?'font-semibold underline':''}`} onClick={()=>setApptFilter('upcoming')}>À venir</button>
+            <span className="text-gray-400">•</span>
+            <button className={`${apptFilter==='past'?'font-semibold underline':''}`} onClick={()=>setApptFilter('past')}>Passés</button>
+            <span className="text-gray-400">•</span>
+            <button className={`${apptFilter==='all'?'font-semibold underline':''}`} onClick={()=>setApptFilter('all')}>Tous</button>
+          </div>
           <div className="space-y-2">
-            {appointments.length > 0 ? appointments.sort((a,b)=> new Date(a.date).getTime()-new Date(b.date).getTime()).map(ap => (
+            {filteredAppointments.length > 0 ? filteredAppointments.map(ap => (
               <button key={ap.id} onClick={() => setShowApptDetails(ap)} className="w-full text-left flex items-center justify-between p-3 rounded-xl bg-white">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center">{new Date(ap.date).getDate()}</div>
@@ -274,6 +321,9 @@ const PregnancyDashboardPage: React.FC = memo(() => {
             {(!record?.symptoms || record.symptoms.length === 0) && (
               <div className="p-3 rounded-xl bg-white text-sm text-gray-600">Aucun symptôme déclaré.</div>
             )}
+            <div className="pt-1 text-center">
+              <button onClick={() => setShowSymptomModal(true)} className="text-blue-700 underline text-sm">Ajouter un symptôme</button>
+            </div>
           </div>
         </Card>
 
@@ -303,6 +353,9 @@ const PregnancyDashboardPage: React.FC = memo(() => {
             {(!record?.medications || record.medications.length === 0) && (
               <div className="p-3 rounded-xl bg-white text-sm text-gray-600">Aucun médicament enregistré.</div>
             )}
+            <div className="pt-1 text-center">
+              <button onClick={() => setShowMedicationModal(true)} className="text-blue-700 underline text-sm">Ajouter un médicament</button>
+            </div>
           </div>
         </Card>
 
@@ -323,6 +376,39 @@ const PregnancyDashboardPage: React.FC = memo(() => {
             )}
           </div>
         </Card>
+
+        {record?.ultrasounds && record.ultrasounds.length > 0 && (
+          <Card title="Historique des échographies" className="bg-[#fff7ec] mb-8" >
+            <div id="us-history" className="space-y-3">
+              <div className="p-3 rounded-xl bg-white">
+                {/* Mini-graph longueur */}
+                {(() => {
+                  const points = record.ultrasounds.map((u, idx) => ({ x: idx, y: u.lengthCm }));
+                  const maxY = Math.max(...points.map(p=>p.y));
+                  const minY = Math.min(...points.map(p=>p.y));
+                  const w = 260; const h = 60; const pad = 6;
+                  const toX = (i:number) => pad + (i*(w-2*pad))/Math.max(1, points.length-1);
+                  const toY = (v:number) => h - pad - ((v - minY) / Math.max(1, (maxY-minY))) * (h-2*pad);
+                  const d = points.map((p,i)=> `${i===0?'M':'L'}${toX(p.x)},${toY(p.y)}`).join(' ');
+                  return (
+                    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-16">
+                      <path d={d} fill="none" stroke="#ec4899" strokeWidth="2" />
+                    </svg>
+                  );
+                })()}
+                <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
+                  {record.ultrasounds.map(u => (
+                    <div key={u.date} className="p-2 rounded-xl bg-[#fff7ec]">
+                      <div className="font-medium">{new Date(u.date).toLocaleDateString()}</div>
+                      <div className="text-gray-700">{u.lengthCm} cm • {u.estimatedWeightGrams} g</div>
+                      <div className="text-gray-600">{u.summary}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
       </div>
 
       {/* Modal RDV */}
@@ -367,6 +453,64 @@ const PregnancyDashboardPage: React.FC = memo(() => {
         </div>
       )}
 
+      {/* Modal Ajouter Symptôme */}
+      {showSymptomModal && record && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowSymptomModal(false)}></div>
+          <div className="relative w-full max-w-md rounded-2xl bg-white p-5 shadow">
+            <h2 className="text-xl font-semibold mb-3" style={{ fontFamily: 'Comic Sans MS, ui-rounded, system-ui' }}>Ajouter un symptôme</h2>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Nom</label>
+                <input value={symptomForm.name} onChange={e => setSymptomForm({ ...symptomForm, name: e.target.value })} className="w-full rounded-xl border border-gray-300 p-2" />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Sévérité</label>
+                <select value={symptomForm.severity} onChange={e => setSymptomForm({ ...symptomForm, severity: e.target.value as any })} className="w-full rounded-xl border border-gray-300 p-2 bg-white">
+                  <option value="léger">Léger</option>
+                  <option value="modéré">Modéré</option>
+                  <option value="sévère">Sévère</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex items-center justify-end mt-4 gap-2">
+              <button onClick={() => setShowSymptomModal(false)} className="px-4 py-2 rounded-xl bg-gray-200">Annuler</button>
+              <button onClick={async () => { const updated = await pregnancyApi.addSymptom(record, symptomForm); setRecord(updated); setShowSymptomModal(false); }} className="px-4 py-2 rounded-xl bg-green-600 text-white">Enregistrer</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Ajouter Médicament */}
+      {showMedicationModal && record && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowMedicationModal(false)}></div>
+          <div className="relative w-full max-w-md rounded-2xl bg-white p-5 shadow">
+            <h2 className="text-xl font-semibold mb-3" style={{ fontFamily: 'Comic Sans MS, ui-rounded, system-ui' }}>Ajouter un médicament</h2>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Nom</label>
+                <input value={medForm.name} onChange={e => setMedForm({ ...medForm, name: e.target.value })} className="w-full rounded-xl border border-gray-300 p-2" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm text-gray-700 mb-1">Dose</label>
+                  <input value={medForm.dose} onChange={e => setMedForm({ ...medForm, dose: e.target.value })} className="w-full rounded-xl border border-gray-300 p-2" />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-700 mb-1">Fréquence</label>
+                  <input value={medForm.frequency} onChange={e => setMedForm({ ...medForm, frequency: e.target.value })} className="w-full rounded-xl border border-gray-300 p-2" placeholder="p.ex. 1 fois/jour" />
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-end mt-4 gap-2">
+              <button onClick={() => setShowMedicationModal(false)} className="px-4 py-2 rounded-xl bg-gray-200">Annuler</button>
+              <button onClick={async () => { const updated = await pregnancyApi.addMedication(record, medForm); setRecord(updated); setShowMedicationModal(false); }} className="px-4 py-2 rounded-xl bg-green-600 text-white">Enregistrer</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Détails RDV */}
       {showApptDetails && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
@@ -383,6 +527,43 @@ const PregnancyDashboardPage: React.FC = memo(() => {
             </div>
             <div className="mt-4 text-right">
               <button onClick={() => setShowApptDetails(null)} className="rounded-xl bg-gray-200 px-4 py-2">Fermer</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Nouvelle échographie */}
+      {showUltrasoundModal && record && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowUltrasoundModal(false)}></div>
+          <div className="relative w-full max-w-md rounded-2xl bg-white p-5 shadow">
+            <div className="flex items-center gap-2 mb-3">
+              <span>🧒</span>
+              <h2 className="text-xl font-semibold" style={{ fontFamily: 'Comic Sans MS, ui-rounded, system-ui' }}>Nouvelle échographie</h2>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Date et heure</label>
+                <input type="datetime-local" value={usForm.date} onChange={e=> setUsForm({ ...usForm, date: e.target.value })} className="w-full rounded-xl border border-gray-300 p-2" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm text-gray-700 mb-1">Taille (cm)</label>
+                  <input type="number" value={usForm.lengthCm} onChange={e=> setUsForm({ ...usForm, lengthCm: e.target.value })} className="w-full rounded-xl border border-gray-300 p-2" />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-700 mb-1">Poids estimé (g)</label>
+                  <input type="number" value={usForm.estimatedWeightGrams} onChange={e=> setUsForm({ ...usForm, estimatedWeightGrams: e.target.value })} className="w-full rounded-xl border border-gray-300 p-2" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Résumé</label>
+                <textarea rows={3} value={usForm.summary} onChange={e=> setUsForm({ ...usForm, summary: e.target.value })} className="w-full rounded-xl border border-gray-300 p-2" />
+              </div>
+            </div>
+            <div className="flex items-center justify-end mt-4 gap-2">
+              <button onClick={()=> setShowUltrasoundModal(false)} className="px-4 py-2 rounded-xl bg-gray-200">Annuler</button>
+              <button onClick={async ()=> { const u = { date: new Date(usForm.date).toISOString(), lengthCm: Number(usForm.lengthCm), estimatedWeightGrams: Number(usForm.estimatedWeightGrams), summary: usForm.summary }; const updated = await pregnancyApi.addUltrasound(record, u); setRecord(updated); setShowUltrasoundModal(false); }} className="px-4 py-2 rounded-xl bg-green-600 text-white">Enregistrer</button>
             </div>
           </div>
         </div>

@@ -92,6 +92,12 @@ export interface PregnancyRecord {
     estimatedWeightGrams: number;
     lengthCm: number;
   };
+  ultrasounds?: Array<{
+    date: string;
+    summary: string;
+    estimatedWeightGrams: number;
+    lengthCm: number;
+  }>;
   symptoms: { name: string; severity: string }[];
   medications: { name: string; dose: string; frequency: string }[];
   nutrition: {
@@ -252,6 +258,21 @@ export const pregnancyApi = {
       method: 'PATCH',
       body: JSON.stringify(data),
     }),
+  addSymptom: async (record: PregnancyRecord, s: { name: string; severity: string }): Promise<PregnancyRecord> => {
+    const symptoms = [...(record.symptoms || [])];
+    symptoms.push(s);
+    return pregnancyApi.update(record.id, { symptoms });
+  },
+  addMedication: async (record: PregnancyRecord, m: { name: string; dose: string; frequency: string }): Promise<PregnancyRecord> => {
+    const medications = [...(record.medications || [])];
+    medications.push(m);
+    return pregnancyApi.update(record.id, { medications });
+  },
+  addUltrasound: async (record: PregnancyRecord, u: { date: string; summary: string; estimatedWeightGrams: number; lengthCm: number }): Promise<PregnancyRecord> => {
+    const ultrasounds = [...(record.ultrasounds || []), u];
+    // garder un champ "ultrasound" de compat pour le dernier
+    return pregnancyApi.update(record.id, { ultrasounds, ultrasound: u });
+  },
 };
 
 // API pour les rendez-vous

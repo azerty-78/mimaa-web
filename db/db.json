@@ -255,6 +255,20 @@
         "estimatedWeightGrams": 600,
         "lengthCm": 30
       },
+      "ultrasounds": [
+        {
+          "date": "2025-06-10",
+          "summary": "Échographie T1 — OK",
+          "estimatedWeightGrams": 50,
+          "lengthCm": 6
+        },
+        {
+          "date": "2025-08-26",
+          "summary": "Échographie T2 — développement normal",
+          "estimatedWeightGrams": 600,
+          "lengthCm": 30
+        }
+      ],
       "symptoms": [
         {
           "name": "Nausées matinales",
