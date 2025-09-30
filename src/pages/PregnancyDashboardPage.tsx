@@ -43,6 +43,13 @@ const PregnancyDashboardPage: React.FC = memo(() => {
   const [record, setRecord] = useState<PregnancyRecord | null>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showApptModal, setShowApptModal] = useState(false);
+  const [savingAppt, setSavingAppt] = useState(false);
+  const [apptForm, setApptForm] = useState<{ date: string; type: string; notes: string }>({
+    date: '',
+    type: 'Consultation prénatale',
+    notes: '',
+  });
 
   useEffect(() => { setIsVisible(true); }, []);
 
@@ -50,10 +57,28 @@ const PregnancyDashboardPage: React.FC = memo(() => {
     const load = async () => {
       if (!user) { setLoading(false); return; }
       try {
-        const [pr, appts] = await Promise.all([
+        let [pr, appts] = await Promise.all([
           pregnancyApi.getByUserId(user.id),
           appointmentApi.getByUserId(user.id),
         ]);
+        if (!pr && user.profileType === 'pregnant_woman') {
+          // créer un dossier de grossesse par défaut si manquant
+          const defaultRecord: Omit<PregnancyRecord, 'id'> = {
+            userId: user.id,
+            dueDate: new Date(Date.now() + 40 * 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+            currentWeek: 12,
+            lastMenstrualPeriod: new Date(Date.now() - 12 * 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+            heightCm: 160,
+            weightKg: 60,
+            bmi: 23.4,
+            ultrasound: { date: new Date().toISOString().slice(0, 10), summary: 'Dossier initial créé.', estimatedWeightGrams: 100, lengthCm: 10 },
+            symptoms: [],
+            medications: [],
+            nutrition: { caloriesTarget: 2200, waterLitersTarget: 2.3, activityTargetMinPerWeek: 150 },
+            notes: 'Créé automatiquement.'
+          };
+          pr = await pregnancyApi.create(defaultRecord);
+        }
         setRecord(pr);
         setAppointments(appts || []);
       } catch (e) {
@@ -82,6 +107,34 @@ const PregnancyDashboardPage: React.FC = memo(() => {
     if (!iso) return '—';
     const d = new Date(iso);
     return d.toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' });
+  };
+
+  const openApptModal = () => {
+    const nextWeek = new Date();
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    setApptForm({ date: nextWeek.toISOString().slice(0, 16), type: 'Consultation prénatale', notes: '' });
+    setShowApptModal(true);
+  };
+
+  const saveAppointment = async () => {
+    if (!user) return;
+    try {
+      setSavingAppt(true);
+      const toCreate = {
+        userId: user.id,
+        type: apptForm.type,
+        date: new Date(apptForm.date).toISOString(),
+        status: 'scheduled',
+        notes: apptForm.notes,
+      } as Omit<Appointment, 'id'>;
+      const created = await appointmentApi.create(toCreate);
+      setAppointments(prev => [...prev, created]);
+      setShowApptModal(false);
+    } catch (e) {
+      console.error('Erreur sauvegarde RDV:', e);
+    } finally {
+      setSavingAppt(false);
+    }
   };
 
   return (
@@ -158,6 +211,9 @@ const PregnancyDashboardPage: React.FC = memo(() => {
           ) : (
             <div className="p-3 rounded-xl bg-white text-sm text-gray-600">Aucun rendez-vous à venir.</div>
           )}
+          <div className="mt-3 text-center">
+            <button onClick={openApptModal} className="text-blue-700 font-medium underline">Programmer un RDV</button>
+          </div>
         </Card>
 
         {/* Symptômes actuels */}
@@ -232,6 +288,48 @@ const PregnancyDashboardPage: React.FC = memo(() => {
           </div>
         </Card>
       </div>
+
+      {/* Modal RDV */}
+      {showApptModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowApptModal(false)}></div>
+          <div className="relative w-full max-w-md rounded-2xl bg-white p-5 shadow">
+            <div className="flex items-center gap-2 mb-3">
+              <span>📅</span>
+              <h2 className="text-xl font-semibold" style={{ fontFamily: 'Comic Sans MS, ui-rounded, system-ui' }}>Rendez-vous médicaux</h2>
+            </div>
+            <div className="mb-3 p-3 rounded-xl bg-green-50">
+              <div className="text-green-700 font-semibold">Prochain rendez-vous</div>
+              <div className="text-sm text-green-700/80">Choisissez une date et un type</div>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Date et heure</label>
+                <input type="datetime-local" value={apptForm.date} onChange={e => setApptForm({ ...apptForm, date: e.target.value })} className="w-full rounded-xl border border-gray-300 p-2" />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Type</label>
+                <select value={apptForm.type} onChange={e => setApptForm({ ...apptForm, type: e.target.value })} className="w-full rounded-xl border border-gray-300 p-2 bg-white">
+                  <option>Consultation prénatale</option>
+                  <option>Échographie</option>
+                  <option>Analyse de sang</option>
+                  <option>Autre</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Notes</label>
+                <textarea value={apptForm.notes} onChange={e => setApptForm({ ...apptForm, notes: e.target.value })} className="w-full rounded-xl border border-gray-300 p-2" rows={3} placeholder="Préparez vos questions, carnet de grossesse, mouvements du bébé…" />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between mt-4">
+              <button onClick={() => setShowApptModal(false)} className="text-gray-700">Fermer</button>
+              <button disabled={savingAppt} onClick={saveAppointment} className="rounded-xl bg-green-600 px-4 py-2 text-white disabled:opacity-50">{savingAppt ? 'Enregistrement…' : 'Enregistrer'}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 });

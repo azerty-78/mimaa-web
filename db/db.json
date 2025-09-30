@@ -255,13 +255,30 @@
         "lengthCm": 30
       },
       "symptoms": [
-        { "name": "Nausées matinales", "severity": "léger" },
-        { "name": "Fatigue", "severity": "modéré" },
-        { "name": "Douleurs lombaires", "severity": "léger" }
+        {
+          "name": "Nausées matinales",
+          "severity": "léger"
+        },
+        {
+          "name": "Fatigue",
+          "severity": "modéré"
+        },
+        {
+          "name": "Douleurs lombaires",
+          "severity": "léger"
+        }
       ],
       "medications": [
-        { "name": "Acide Folique", "dose": "400µg", "frequency": "1 fois/jour" },
-        { "name": "Fer", "dose": "65mg", "frequency": "1 fois/jour" }
+        {
+          "name": "Acide Folique",
+          "dose": "400µg",
+          "frequency": "1 fois/jour"
+        },
+        {
+          "name": "Fer",
+          "dose": "65mg",
+          "frequency": "1 fois/jour"
+        }
       ],
       "nutrition": {
         "caloriesTarget": 2200,
@@ -279,6 +296,30 @@
       "date": "2025-10-09",
       "status": "scheduled",
       "notes": "Contrôle de routine"
+    },
+    {
+      "id": 2,
+      "userId": 2,
+      "type": "Consultation prénatale",
+      "date": "2025-10-07T08:07:00.000Z",
+      "status": "scheduled",
+      "notes": ""
+    },
+    {
+      "id": 3,
+      "userId": 2,
+      "type": "Consultation prénatale",
+      "date": "2025-10-07T08:07:00.000Z",
+      "status": "scheduled",
+      "notes": ""
+    },
+    {
+      "id": 4,
+      "userId": 2,
+      "type": "Échographie",
+      "date": "2025-10-07T08:07:00.000Z",
+      "status": "scheduled",
+      "notes": ""
     }
   ]
 }

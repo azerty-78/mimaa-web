@@ -229,6 +229,11 @@ export const pregnancyApi = {
     const records = await request<PregnancyRecord[]>(`/pregnancyRecords?userId=${userId}`);
     return records.length > 0 ? records[0] : null;
   },
+  create: (data: Omit<PregnancyRecord, 'id'>): Promise<PregnancyRecord> =>
+    request<PregnancyRecord>('/pregnancyRecords', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
   update: (id: number, data: Partial<PregnancyRecord>): Promise<PregnancyRecord> =>
     request<PregnancyRecord>(`/pregnancyRecords/${id}`, {
       method: 'PATCH',
