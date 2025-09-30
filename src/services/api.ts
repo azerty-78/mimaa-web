@@ -65,6 +65,17 @@ export interface Notification {
 }
 
 // Types grossesse
+export interface MedicalParams {
+  systolicMmHg: number;
+  diastolicMmHg: number;
+  fastingGlucoseMgDl: number;
+  hemoglobinGdl: number;
+  bmi: number;
+  preExistingConditions: string[];
+  allergies: string[];
+  riskFlags: string[];
+}
+
 export interface PregnancyRecord {
   id: number;
   userId: number;
@@ -74,6 +85,7 @@ export interface PregnancyRecord {
   heightCm: number;
   weightKg: number;
   bmi: number;
+  babyName?: string;
   ultrasound: {
     date: string;
     summary: string;
@@ -87,6 +99,7 @@ export interface PregnancyRecord {
     waterLitersTarget: number;
     activityTargetMinPerWeek: number;
   };
+  medicalParams?: MedicalParams;
   notes: string;
 }
 

@@ -44,6 +44,7 @@ const PregnancyDashboardPage: React.FC = memo(() => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [showApptModal, setShowApptModal] = useState(false);
+  const [showApptDetails, setShowApptDetails] = useState<Appointment | null>(null);
   const [savingAppt, setSavingAppt] = useState(false);
   const [apptForm, setApptForm] = useState<{ date: string; type: string; notes: string }>({
     date: '',
@@ -71,10 +72,21 @@ const PregnancyDashboardPage: React.FC = memo(() => {
             heightCm: 160,
             weightKg: 60,
             bmi: 23.4,
+            babyName: 'Bébé',
             ultrasound: { date: new Date().toISOString().slice(0, 10), summary: 'Dossier initial créé.', estimatedWeightGrams: 100, lengthCm: 10 },
             symptoms: [],
             medications: [],
             nutrition: { caloriesTarget: 2200, waterLitersTarget: 2.3, activityTargetMinPerWeek: 150 },
+            medicalParams: {
+              systolicMmHg: 110,
+              diastolicMmHg: 70,
+              fastingGlucoseMgDl: 85,
+              hemoglobinGdl: 12.5,
+              bmi: 23.4,
+              preExistingConditions: [],
+              allergies: [],
+              riskFlags: [],
+            },
             notes: 'Créé automatiquement.'
           };
           pr = await pregnancyApi.create(defaultRecord);
@@ -108,6 +120,25 @@ const PregnancyDashboardPage: React.FC = memo(() => {
     const d = new Date(iso);
     return d.toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' });
   };
+
+  const nutritionAdvice = useMemo(() => {
+    const week = record?.currentWeek || 0;
+    const mp = record?.medicalParams;
+    const adv: { label: string; value: number; color: string; tip: string }[] = [];
+    const cal = (record?.nutrition?.caloriesTarget || 2200) + (week >= 13 ? 340 : 0) + (week >= 27 ? 112 : 0);
+    adv.push({ label: 'Calories', value: Math.min(100, Math.round((cal / 2800) * 100)), color: 'bg-purple-600', tip: `Cible ~${cal} kcal/j` });
+    const water = record?.nutrition?.waterLitersTarget || 2.3;
+    adv.push({ label: 'Eau', value: Math.min(100, Math.round((water / 3) * 100)), color: 'bg-blue-500', tip: `Cible ${water} L/j` });
+    const activity = record?.nutrition?.activityTargetMinPerWeek || 150;
+    adv.push({ label: 'Activité physique (sem.)', value: Math.min(100, Math.round((activity / 150) * 100)), color: 'bg-green-600', tip: `${activity} min/sem` });
+    if (mp && mp.hemoglobinGdl < 11) {
+      adv.push({ label: 'Fer', value: 60, color: 'bg-red-500', tip: 'Augmenter aliments riches en fer + vitamine C' });
+    }
+    if (mp && mp.fastingGlucoseMgDl > 95) {
+      adv.push({ label: 'Glucose', value: 50, color: 'bg-orange-500', tip: 'Réduire sucres rapides, fractionner repas' });
+    }
+    return adv;
+  }, [record]);
 
   const openApptModal = () => {
     const nextWeek = new Date();
@@ -161,6 +192,9 @@ const PregnancyDashboardPage: React.FC = memo(() => {
               <div className="text-sm font-medium">{record?.weightKg ? `${record.weightKg} kg` : '—'}</div>
             </div>
           </div>
+          {record?.babyName && (
+            <div className="mt-2 text-center text-sm text-gray-700">Bébé: <span className="font-semibold">{record.babyName}</span></div>
+          )}
         </div>
 
         {/* Stat tuiles */}
@@ -184,33 +218,39 @@ const PregnancyDashboardPage: React.FC = memo(() => {
             <div className="mt-3">
               <div className="text-gray-600 mb-2">Taille comparable à :</div>
               <div className="w-16 h-16 rounded-full bg-yellow-100 flex items-center justify-center text-2xl">🌽</div>
-              <div className="mt-2 text-gray-700" style={{ fontFamily: 'Comic Sans MS, ui-rounded, system-ui' }}>épis de maïs</div>
+              <div className="mt-2 text-gray-700" style={{ fontFamily: 'Comic Sans MS, ui-rounded, system-ui' }}>{record?.currentWeek && record.currentWeek >= 24 ? 'épis de maïs' : 'fruit de saison'}</div>
             </div>
             <div className="mt-3 p-3 rounded-xl bg-white/60 text-gray-700">
               {record?.ultrasound?.summary || 'Aucune note disponible.'}
             </div>
+            {record?.medicalParams && (
+              <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
+                <div className="p-2 rounded-xl bg-white"><div className="text-gray-500">TA</div><div className="font-semibold">{record.medicalParams.systolicMmHg}/{record.medicalParams.diastolicMmHg}</div></div>
+                <div className="p-2 rounded-xl bg-white"><div className="text-gray-500">Glycémie</div><div className="font-semibold">{record.medicalParams.fastingGlucoseMgDl} mg/dL</div></div>
+                <div className="p-2 rounded-xl bg-white"><div className="text-gray-500">Hb</div><div className="font-semibold">{record.medicalParams.hemoglobinGdl} g/dL</div></div>
+              </div>
+            )}
           </div>
         </Card>
 
         {/* Prochains RDV */}
         <Card title="Prochains RDV" className="bg-[#eaf8ef] mb-4">
-          {nextAppointment ? (
-            <div className="flex items-center justify-between p-3 rounded-xl bg-white">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center">{new Date(nextAppointment.date).getDate()}</div>
-                <div>
-                  <div className="font-medium">{nextAppointment.type}</div>
-                  <div className="text-sm text-gray-600">{(() => {
-                    const d = daysUntil(nextAppointment.date);
-                    return d !== null ? (d > 0 ? `Dans ${d} jour${d > 1 ? 's' : ''}` : d === 0 ? "Aujourd'hui" : `Il y a ${Math.abs(d)} jour${Math.abs(d) > 1 ? 's' : ''}`) : '';
-                  })()}</div>
+          <div className="space-y-2">
+            {appointments.length > 0 ? appointments.sort((a,b)=> new Date(a.date).getTime()-new Date(b.date).getTime()).map(ap => (
+              <button key={ap.id} onClick={() => setShowApptDetails(ap)} className="w-full text-left flex items-center justify-between p-3 rounded-xl bg-white">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center">{new Date(ap.date).getDate()}</div>
+                  <div>
+                    <div className="font-medium">{ap.type}</div>
+                    <div className="text-sm text-gray-600">{(() => { const d = daysUntil(ap.date); return d !== null ? (d > 0 ? `Dans ${d} j` : d === 0 ? "Aujourd'hui" : `Il y a ${Math.abs(d)} j`) : ''; })()}</div>
+                  </div>
                 </div>
-              </div>
-              <div>›</div>
-            </div>
-          ) : (
-            <div className="p-3 rounded-xl bg-white text-sm text-gray-600">Aucun rendez-vous à venir.</div>
-          )}
+                <div>›</div>
+              </button>
+            )) : (
+              <div className="p-3 rounded-xl bg-white text-sm text-gray-600">Aucun rendez-vous à venir.</div>
+            )}
+          </div>
           <div className="mt-3 text-center">
             <button onClick={openApptModal} className="text-blue-700 font-medium underline">Programmer un RDV</button>
           </div>
@@ -240,13 +280,9 @@ const PregnancyDashboardPage: React.FC = memo(() => {
         {/* Nutrition & Exercice */}
         <Card title="Nutrition & Exercice" className="bg-[#efe7ff] mb-4">
           <div className="space-y-4">
-            {[
-              { label: 'Calories', value: 70, color: 'bg-purple-600' },
-              { label: 'Eau', value: 60, color: 'bg-blue-500' },
-              { label: 'Activité physique (Cette semaine)', value: 80, color: 'bg-green-600' },
-            ].map(bar => (
+            {nutritionAdvice.map(bar => (
               <div key={bar.label}>
-                <div className="text-sm text-gray-700 mb-1">{bar.label}</div>
+                <div className="text-sm text-gray-700 mb-1 flex justify-between"><span>{bar.label}</span><span className="text-gray-500">{bar.tip}</span></div>
                 <div className="h-2 rounded-full bg-white">
                   <div className={`h-2 rounded-full ${bar.color}`} style={{ width: `${bar.value}%` }} />
                 </div>
@@ -326,6 +362,27 @@ const PregnancyDashboardPage: React.FC = memo(() => {
             <div className="flex items-center justify-between mt-4">
               <button onClick={() => setShowApptModal(false)} className="text-gray-700">Fermer</button>
               <button disabled={savingAppt} onClick={saveAppointment} className="rounded-xl bg-green-600 px-4 py-2 text-white disabled:opacity-50">{savingAppt ? 'Enregistrement…' : 'Enregistrer'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Détails RDV */}
+      {showApptDetails && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowApptDetails(null)}></div>
+          <div className="relative w-full max-w-md rounded-2xl bg-white p-5 shadow">
+            <div className="flex items-center gap-2 mb-3">
+              <span>🩺</span>
+              <h2 className="text-xl font-semibold" style={{ fontFamily: 'Comic Sans MS, ui-rounded, system-ui' }}>{showApptDetails.type}</h2>
+            </div>
+            <div className="space-y-2 text-sm">
+              <div><span className="text-gray-500">Date: </span>{new Date(showApptDetails.date).toLocaleString()}</div>
+              <div><span className="text-gray-500">Statut: </span>{showApptDetails.status}</div>
+              <div><span className="text-gray-500">Notes: </span>{showApptDetails.notes || '—'}</div>
+            </div>
+            <div className="mt-4 text-right">
+              <button onClick={() => setShowApptDetails(null)} className="rounded-xl bg-gray-200 px-4 py-2">Fermer</button>
             </div>
           </div>
         </div>

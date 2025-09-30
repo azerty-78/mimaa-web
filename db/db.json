@@ -248,6 +248,7 @@
       "heightCm": 165,
       "weightKg": 62,
       "bmi": 22.8,
+      "babyName": "Emma",
       "ultrasound": {
         "date": "2025-08-26",
         "summary": "Échographie morphologique — développement normal",
@@ -284,6 +285,16 @@
         "caloriesTarget": 2200,
         "waterLitersTarget": 2.3,
         "activityTargetMinPerWeek": 150
+      },
+      "medicalParams": {
+        "systolicMmHg": 112,
+        "diastolicMmHg": 72,
+        "fastingGlucoseMgDl": 89,
+        "hemoglobinGdl": 11.8,
+        "bmi": 22.8,
+        "preExistingConditions": ["anémie légère"],
+        "allergies": ["pénicilline"],
+        "riskFlags": []
       },
       "notes": "Grossesse sans complication à ce stade."
     }
