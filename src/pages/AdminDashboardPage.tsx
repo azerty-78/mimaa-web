@@ -1,17 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useToast } from '../components/ToastProvider';
 import { Add, Edit, Delete, Save, Close } from '@mui/icons-material';
-
-type Campaign = {
-  id?: number;
-  title: string;
-  organizer?: string | null;
-  description?: string | null;
-  link: string;
-  imageUrl?: string | null;
-  thumbnailUrl?: string | null;
-  status?: string | null;
-};
+import { campaignApi, type Campaign } from '../services/api';
 
 const emptyCampaign: Campaign = {
   title: '',
@@ -33,8 +23,7 @@ const AdminDashboardPage: React.FC = () => {
   const fetchItems = async () => {
     try {
       setIsLoading(true);
-      const res = await fetch('http://localhost:3001/campaigns');
-      const data = await res.json();
+      const data = await campaignApi.getAll();
       setItems(Array.isArray(data) ? data : []);
       toast.show('Campagnes chargées', 'success');
     } catch (e: any) {
@@ -76,21 +65,8 @@ const AdminDashboardPage: React.FC = () => {
     }
     try {
       setError(null);
-      if (editing.id) {
-        const res = await fetch(`http://localhost:3001/campaigns/${editing.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(editing),
-        });
-        if (!res.ok) throw new Error('Échec de la mise à jour');
-      } else {
-        const res = await fetch('http://localhost:3001/campaigns', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(editing),
-        });
-        if (!res.ok) throw new Error('Échec de la création');
-      }
+      if (editing.id) await campaignApi.update(editing.id as number, editing);
+      else await campaignApi.create(editing as any);
       await fetchItems();
       try { window.dispatchEvent(new CustomEvent('campaigns:changed')); } catch {}
       cancelForm();
@@ -105,8 +81,7 @@ const AdminDashboardPage: React.FC = () => {
     if (!id) return;
     if (!confirm('Supprimer cette campagne ?')) return;
     try {
-      const res = await fetch(`http://localhost:3001/campaigns/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Échec de la suppression');
+      await campaignApi.delete(id);
       await fetchItems();
       try { window.dispatchEvent(new CustomEvent('campaigns:changed')); } catch {}
       toast.show('Campagne supprimée', 'success');

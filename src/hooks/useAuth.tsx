@@ -92,7 +92,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('user');
+    try { localStorage.removeItem('user'); } catch {}
   };
 
   const updateProfile = async (userData: Partial<User>): Promise<boolean> => {

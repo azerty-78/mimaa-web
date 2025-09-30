@@ -10,7 +10,7 @@ const SignInPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const { navigateToSignUp, navigateToHome } = useNavigation();
+  const { navigateToSignUp, navigateTo } = useNavigation();
   const { login } = useAuth();
 
   const handleNavigateToSignUp = () => {
@@ -26,7 +26,8 @@ const SignInPage: React.FC = () => {
     try {
       const success = await login(email, password);
       if (success) {
-        navigateToHome();
+        // Après login, router vers dashboard qui choisit la page suivant le profileType
+        navigateTo('dashboard');
       } else {
         setError('Email ou mot de passe incorrect');
       }

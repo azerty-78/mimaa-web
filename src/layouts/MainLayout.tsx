@@ -20,7 +20,7 @@ const CommunityChatPage = lazy(() => import('../pages/CommunityChatPage'));
 
 const MainLayout: React.FC = memo(() => {
   const { activeTab, navigateTo, navigateToSignIn } = useNavigation();
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
 
   // Rediriger vers la page de connexion si l'utilisateur n'est pas authentifié
   useEffect(() => {
@@ -31,10 +31,11 @@ const MainLayout: React.FC = memo(() => {
   }, [isAuthenticated, isLoading, activeTab, navigateToSignIn]);
 
   const handleLogout = () => {
-    // Ici vous pouvez ajouter la logique de déconnexion
-    // Par exemple : supprimer le token, rediriger vers la page de connexion, etc.
-    console.log('Déconnexion...');
-    navigateToSignIn();
+    try {
+      logout();
+    } finally {
+      navigateToSignIn();
+    }
   };
 
   const renderPage = () => {
@@ -146,10 +147,10 @@ const MainLayout: React.FC = memo(() => {
     );
   }
 
-  // Pages sans barres (connexion/inscription/chat/pregnant-dashboard)
+  // Pages sans barres (connexion/inscription/chat)
   const isAuthPage = activeTab === 'signin' || activeTab === 'signup';
   const isChatPage = activeTab.startsWith('chat-');
-  const isFullScreenPage = isAuthPage || isChatPage || activeTab === 'pregnant-dashboard';
+  const isFullScreenPage = isAuthPage || isChatPage;
 
   if (isFullScreenPage) {
     return (

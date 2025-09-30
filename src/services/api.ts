@@ -30,18 +30,20 @@ export interface User {
 }
 
 export interface Campaign {
-  id: number;
+  id?: number;
   title: string;
-  description: string;
-  startDate: string;
-  endDate: string;
-  status: 'active' | 'completed' | 'upcoming';
-  targetAudience: string;
-  location: string;
-  organizer: string;
-  imageUrl: string;
-  createdAt: string;
-  updatedAt: string;
+  description?: string;
+  startDate?: string;
+  endDate?: string;
+  status?: string; // ex: 'planned' | 'active' | 'completed' | 'upcoming'
+  targetAudience?: string;
+  location?: string;
+  organizer?: string;
+  imageUrl?: string;
+  thumbnailUrl?: string;
+  link?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Community {
@@ -198,20 +200,11 @@ export const userApi = {
 export const campaignApi = {
   getAll: (): Promise<Campaign[]> => request<Campaign[]>('/campaigns'),
   getById: (id: number): Promise<Campaign> => request<Campaign>(`/campaigns/${id}`),
-  create: (campaignData: Omit<Campaign, 'id' | 'createdAt' | 'updatedAt'>): Promise<Campaign> =>
-    request<Campaign>('/campaigns', {
-      method: 'POST',
-      body: JSON.stringify(campaignData),
-    }),
-  update: (id: number, campaignData: Partial<Campaign>): Promise<Campaign> =>
-    request<Campaign>(`/campaigns/${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify(campaignData),
-    }),
-  delete: (id: number): Promise<void> =>
-    request<void>(`/campaigns/${id}`, {
-      method: 'DELETE',
-    }),
+  create: (data: Omit<Campaign, 'id'>): Promise<Campaign> =>
+    request<Campaign>('/campaigns', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: number, data: Partial<Campaign>): Promise<Campaign> =>
+    request<Campaign>(`/campaigns/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id: number): Promise<void> => request<void>(`/campaigns/${id}`, { method: 'DELETE' }),
 };
 
 // API pour les communautés

@@ -23,7 +23,7 @@ interface NavigationProviderProps {
 }
 
 export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children }) => {
-  const [activeTab, setActiveTab] = useState('signin');
+  const [activeTab, setActiveTab] = useState('home');
 
   const navigateTo = (tab: string) => {
     console.log('Navigation vers:', tab);
