@@ -62,6 +62,7 @@ const PregnancyDashboardPage: React.FC = memo(() => {
     type: 'Consultation prénatale',
     notes: '',
   });
+  const isDev = import.meta.env.MODE !== 'production';
 
   useEffect(() => { setIsVisible(true); }, []);
 
@@ -198,6 +199,26 @@ const PregnancyDashboardPage: React.FC = memo(() => {
     nextWeek.setDate(nextWeek.getDate() + 7);
     setApptForm({ date: nextWeek.toISOString().slice(0, 16), type: 'Consultation prénatale', notes: '' });
     setShowApptModal(true);
+  };
+
+  const openSymptomModal = () => {
+    try {
+      setSymptomForm({ name: '', severity: 'léger' });
+      setShowSymptomModal(true);
+      console.log('[UI] Ouverture modal symptôme');
+    } catch (e) {
+      alert('Impossible d\'ouvrir la fenêtre d\'ajout de symptôme');
+    }
+  };
+
+  const openMedicationModal = () => {
+    try {
+      setMedForm({ name: '', dose: '', frequency: '' });
+      setShowMedicationModal(true);
+      console.log('[UI] Ouverture modal médicament');
+    } catch (e) {
+      alert('Impossible d\'ouvrir la fenêtre d\'ajout de médicament');
+    }
   };
 
   const saveAppointment = async () => {
@@ -353,7 +374,7 @@ const PregnancyDashboardPage: React.FC = memo(() => {
               <div className="p-3 rounded-xl bg-white text-sm text-gray-600">Aucun symptôme déclaré.</div>
             )}
             <div className="pt-1 text-center">
-              <button onClick={() => setShowSymptomModal(true)} className="text-blue-700 underline text-sm">Ajouter un symptôme</button>
+              <button type="button" onClick={openSymptomModal} className="text-blue-700 underline text-sm">Ajouter un symptôme</button>
             </div>
           </div>
         </Card>
@@ -388,7 +409,7 @@ const PregnancyDashboardPage: React.FC = memo(() => {
               <div className="p-3 rounded-xl bg-white text-sm text-gray-600">Aucun médicament enregistré.</div>
             )}
             <div className="pt-1 text-center">
-              <button onClick={() => setShowMedicationModal(true)} className="text-blue-700 underline text-sm">Ajouter un médicament</button>
+              <button type="button" onClick={openMedicationModal} className="text-blue-700 underline text-sm">Ajouter un médicament</button>
             </div>
           </div>
         </Card>
@@ -484,6 +505,14 @@ const PregnancyDashboardPage: React.FC = memo(() => {
               <button disabled={savingAppt} onClick={saveAppointment} className="rounded-xl bg-green-600 px-4 py-2 text-white disabled:opacity-50">{savingAppt ? 'Enregistrement…' : 'Enregistrer'}</button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Boutons de test (dev uniquement) */}
+      {isDev && (
+        <div className="fixed bottom-4 right-4 z-[60] space-x-2">
+          <button type="button" onClick={openSymptomModal} className="px-3 py-2 rounded-lg bg-yellow-500 text-white shadow">Test symptôme</button>
+          <button type="button" onClick={openMedicationModal} className="px-3 py-2 rounded-lg bg-indigo-600 text-white shadow">Test médicament</button>
         </div>
       )}
 
