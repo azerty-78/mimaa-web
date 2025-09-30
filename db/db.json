@@ -237,5 +237,48 @@
       "isRead": false,
       "createdAt": "2024-01-01T00:00:00.000Z"
     }
+  ],
+  "pregnancyRecords": [
+    {
+      "id": 1,
+      "userId": 2,
+      "dueDate": "2025-11-17",
+      "currentWeek": 24,
+      "lastMenstrualPeriod": "2025-03-03",
+      "heightCm": 165,
+      "weightKg": 62,
+      "bmi": 22.8,
+      "ultrasound": {
+        "date": "2025-08-26",
+        "summary": "Échographie morphologique — développement normal",
+        "estimatedWeightGrams": 600,
+        "lengthCm": 30
+      },
+      "symptoms": [
+        { "name": "Nausées matinales", "severity": "léger" },
+        { "name": "Fatigue", "severity": "modéré" },
+        { "name": "Douleurs lombaires", "severity": "léger" }
+      ],
+      "medications": [
+        { "name": "Acide Folique", "dose": "400µg", "frequency": "1 fois/jour" },
+        { "name": "Fer", "dose": "65mg", "frequency": "1 fois/jour" }
+      ],
+      "nutrition": {
+        "caloriesTarget": 2200,
+        "waterLitersTarget": 2.3,
+        "activityTargetMinPerWeek": 150
+      },
+      "notes": "Grossesse sans complication à ce stade."
+    }
+  ],
+  "appointments": [
+    {
+      "id": 1,
+      "userId": 2,
+      "type": "Consultation prénatale",
+      "date": "2025-10-09",
+      "status": "scheduled",
+      "notes": "Contrôle de routine"
+    }
   ]
 }

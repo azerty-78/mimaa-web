@@ -214,6 +214,156 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(db.communities || []));
   }
+  // Pregnancy records CRUD
+  else if (pathname.startsWith('/pregnancy-records')) {
+    const segments = pathname.split('/').filter(Boolean);
+    const id = segments[1] ? Number(segments[1]) : null;
+    if (req.method === 'GET') {
+      const { userId } = query;
+      let records = db.pregnancyRecords || [];
+      if (userId) records = records.filter(r => Number(r.userId) === Number(userId));
+      const result = id ? (records.find(r => Number(r.id) === Number(id)) || null) : records;
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify(result));
+    }
+    if (req.method === 'POST') {
+      let body = '';
+      req.on('data', chunk => { body += chunk.toString(); });
+      req.on('end', () => {
+        try {
+          const payload = JSON.parse(body || '{}');
+          if (!db.pregnancyRecords) db.pregnancyRecords = [];
+          const nextId = db.pregnancyRecords.length ? Math.max(...db.pregnancyRecords.map(r => r.id || 0)) + 1 : 1;
+          const newRec = { id: nextId, ...payload };
+          db.pregnancyRecords.push(newRec);
+          try { fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8'); } catch {}
+          res.writeHead(201, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify(newRec));
+        } catch (e) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: 'Invalid JSON' }));
+        }
+      });
+      return;
+    }
+    if ((req.method === 'PUT' || req.method === 'PATCH') && id) {
+      let body = '';
+      req.on('data', chunk => { body += chunk.toString(); });
+      req.on('end', () => {
+        try {
+          const payload = JSON.parse(body || '{}');
+          const list = db.pregnancyRecords || [];
+          const idx = list.findIndex(r => Number(r.id) === Number(id));
+          if (idx === -1) {
+            const created = { id: Number(id), ...payload };
+            list.push(created);
+            db.pregnancyRecords = list;
+            try { fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8'); } catch {}
+            res.writeHead(201, { 'Content-Type': 'application/json' });
+            return res.end(JSON.stringify(created));
+          }
+          const updated = { ...list[idx], ...payload, id: Number(id) };
+          list[idx] = updated;
+          db.pregnancyRecords = list;
+          try { fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8'); } catch {}
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify(updated));
+        } catch (e) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: 'Invalid JSON' }));
+        }
+      });
+      return;
+    }
+    if (req.method === 'DELETE' && id) {
+      const list = db.pregnancyRecords || [];
+      const idx = list.findIndex(r => Number(r.id) === Number(id));
+      if (idx === -1) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: 'Not Found' }));
+      }
+      const removed = list.splice(idx, 1)[0];
+      db.pregnancyRecords = list;
+      try { fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8'); } catch {}
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify(removed));
+    }
+  }
+  // Appointments CRUD
+  else if (pathname.startsWith('/appointments')) {
+    const segments = pathname.split('/').filter(Boolean);
+    const id = segments[1] ? Number(segments[1]) : null;
+    if (req.method === 'GET') {
+      const { userId } = query;
+      let list = db.appointments || [];
+      if (userId) list = list.filter(a => Number(a.userId) === Number(userId));
+      const result = id ? (list.find(a => Number(a.id) === Number(id)) || null) : list;
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify(result));
+    }
+    if (req.method === 'POST') {
+      let body = '';
+      req.on('data', chunk => { body += chunk.toString(); });
+      req.on('end', () => {
+        try {
+          const payload = JSON.parse(body || '{}');
+          if (!db.appointments) db.appointments = [];
+          const nextId = db.appointments.length ? Math.max(...db.appointments.map(a => a.id || 0)) + 1 : 1;
+          const created = { id: nextId, ...payload };
+          db.appointments.push(created);
+          try { fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8'); } catch {}
+          res.writeHead(201, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify(created));
+        } catch (e) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: 'Invalid JSON' }));
+        }
+      });
+      return;
+    }
+    if ((req.method === 'PUT' || req.method === 'PATCH') && id) {
+      let body = '';
+      req.on('data', chunk => { body += chunk.toString(); });
+      req.on('end', () => {
+        try {
+          const payload = JSON.parse(body || '{}');
+          const list = db.appointments || [];
+          const idx = list.findIndex(a => Number(a.id) === Number(id));
+          if (idx === -1) {
+            const created = { id: Number(id), ...payload };
+            list.push(created);
+            db.appointments = list;
+            try { fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8'); } catch {}
+            res.writeHead(201, { 'Content-Type': 'application/json' });
+            return res.end(JSON.stringify(created));
+          }
+          const updated = { ...list[idx], ...payload, id: Number(id) };
+          list[idx] = updated;
+          db.appointments = list;
+          try { fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8'); } catch {}
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify(updated));
+        } catch (e) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: 'Invalid JSON' }));
+        }
+      });
+      return;
+    }
+    if (req.method === 'DELETE' && id) {
+      const list = db.appointments || [];
+      const idx = list.findIndex(a => Number(a.id) === Number(id));
+      if (idx === -1) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: 'Not Found' }));
+      }
+      const removed = list.splice(idx, 1)[0];
+      db.appointments = list;
+      try { fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8'); } catch {}
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify(removed));
+    }
+  }
   // Route pour les notifications
   else if (pathname === '/notifications') {
     const { userId } = query;
