@@ -1,4 +1,6 @@
-import React, { memo, useEffect, useState } from 'react';
+import React, { memo, useEffect, useMemo, useState } from 'react';
+import { useAuth } from '../hooks/useAuth';
+import { appointmentApi, pregnancyApi, type Appointment, type PregnancyRecord } from '../services/api';
 
 const Card: React.FC<{ title: string; subtitle?: string; className?: string; children?: React.ReactNode }> = ({ title, subtitle, className, children }) => (
   <div className={`rounded-2xl p-4 sm:p-5 shadow border border-black/5 ${className || ''}`}>
@@ -36,28 +38,74 @@ const CircularProgress: React.FC<{ percent: number }> = ({ percent }) => (
 );
 
 const PregnancyDashboardPage: React.FC = memo(() => {
+  const { user } = useAuth();
   const [isVisible, setIsVisible] = useState(false);
+  const [record, setRecord] = useState<PregnancyRecord | null>(null);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => { setIsVisible(true); }, []);
+
+  useEffect(() => {
+    const load = async () => {
+      if (!user) { setLoading(false); return; }
+      try {
+        const [pr, appts] = await Promise.all([
+          pregnancyApi.getByUserId(user.id),
+          appointmentApi.getByUserId(user.id),
+        ]);
+        setRecord(pr);
+        setAppointments(appts || []);
+      } catch (e) {
+        console.error('Erreur chargement données grossesse:', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [user]);
+
+  const nextAppointment = useMemo(() => {
+    const future = appointments
+      .filter(a => new Date(a.date).getTime() >= Date.now())
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    return future[0] || null;
+  }, [appointments]);
+
+  const daysUntil = (isoDate?: string) => {
+    if (!isoDate) return null;
+    const diff = Math.ceil((new Date(isoDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    return diff;
+  };
+
+  const formatDate = (iso?: string) => {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' });
+  };
 
   return (
     <div className={`w-full min-h-screen bg-gray-100 text-gray-900`}> 
       <div className="max-w-md mx-auto px-3 py-4">
+        {loading && (
+          <div className="rounded-2xl bg-white shadow p-5 mb-4">Chargement…</div>
+        )}
         {/* Header de salutation */}
         <div className={`rounded-2xl bg-white shadow p-5 mb-4 transition-all ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}>
-          <div className="text-2xl mb-2" style={{ fontFamily: 'Comic Sans MS, ui-rounded, system-ui' }}>Bonjour User Name 👋</div>
-          <CircularProgress percent={60} />
+          <div className="text-2xl mb-2" style={{ fontFamily: 'Comic Sans MS, ui-rounded, system-ui' }}>Bonjour {user?.firstName || 'Utilisateur'} 👋</div>
+          <CircularProgress percent={Math.min(100, Math.max(0, Math.round(((record?.currentWeek || 0) / 40) * 100)))} />
           <div className="mt-4 grid grid-cols-3 gap-2">
             <div className="rounded-xl bg-pink-50 text-center py-3">
               <div className="text-xs text-gray-500">DPA</div>
-              <div className="text-sm font-medium">17/11</div>
+              <div className="text-sm font-medium">{formatDate(record?.dueDate)}</div>
             </div>
             <div className="rounded-xl bg-pink-50 text-center py-3">
-              <div className="text-xs text-gray-500">Emma</div>
-              <div className="text-sm font-medium">30sa</div>
+              <div className="text-xs text-gray-500">Semaine</div>
+              <div className="text-sm font-medium">{record?.currentWeek ? `${record.currentWeek}sa` : '—'}</div>
             </div>
             <div className="rounded-xl bg-pink-50 text-center py-3">
               <div className="text-xs text-gray-500">Poids</div>
-              <div className="text-sm font-medium">—</div>
+              <div className="text-sm font-medium">{record?.weightKg ? `${record.weightKg} kg` : '—'}</div>
             </div>
           </div>
         </div>
@@ -70,15 +118,15 @@ const PregnancyDashboardPage: React.FC = memo(() => {
         </div>
 
         {/* Développement de bébé */}
-        <Card title="Développement de bébé" subtitle="Semaine 24" className="bg-[#fff7ec] mb-4">
+        <Card title="Développement de bébé" subtitle={record?.currentWeek ? `Semaine ${record.currentWeek}` : undefined} className="bg-[#fff7ec] mb-4">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="text-gray-600">Taille</div>
-              <div className="font-semibold">30.0 cm</div>
+              <div className="font-semibold">{record?.ultrasound?.lengthCm ? `${record.ultrasound.lengthCm} cm` : '—'}</div>
             </div>
             <div className="flex items-center justify-between">
               <div className="text-gray-600">Poids</div>
-              <div className="font-semibold">600 g</div>
+              <div className="font-semibold">{record?.ultrasound?.estimatedWeightGrams ? `${record.ultrasound.estimatedWeightGrams} g` : '—'}</div>
             </div>
             <div className="mt-3">
               <div className="text-gray-600 mb-2">Taille comparable à :</div>
@@ -86,44 +134,50 @@ const PregnancyDashboardPage: React.FC = memo(() => {
               <div className="mt-2 text-gray-700" style={{ fontFamily: 'Comic Sans MS, ui-rounded, system-ui' }}>épis de maïs</div>
             </div>
             <div className="mt-3 p-3 rounded-xl bg-white/60 text-gray-700">
-              Les poumons de bébé commencent à produire du surfactant, une substance qui l'aidera à respirer après la naissance.
+              {record?.ultrasound?.summary || 'Aucune note disponible.'}
             </div>
           </div>
         </Card>
 
         {/* Prochains RDV */}
         <Card title="Prochains RDV" className="bg-[#eaf8ef] mb-4">
-          <div className="flex items-center justify-between p-3 rounded-xl bg-white">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center">7</div>
-              <div>
-                <div className="font-medium">Consultation prénatale</div>
-                <div className="text-sm text-gray-600">Dans 14 jours</div>
+          {nextAppointment ? (
+            <div className="flex items-center justify-between p-3 rounded-xl bg-white">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center">{new Date(nextAppointment.date).getDate()}</div>
+                <div>
+                  <div className="font-medium">{nextAppointment.type}</div>
+                  <div className="text-sm text-gray-600">{(() => {
+                    const d = daysUntil(nextAppointment.date);
+                    return d !== null ? (d > 0 ? `Dans ${d} jour${d > 1 ? 's' : ''}` : d === 0 ? "Aujourd'hui" : `Il y a ${Math.abs(d)} jour${Math.abs(d) > 1 ? 's' : ''}`) : '';
+                  })()}</div>
+                </div>
               </div>
+              <div>›</div>
             </div>
-            <div>›</div>
-          </div>
+          ) : (
+            <div className="p-3 rounded-xl bg-white text-sm text-gray-600">Aucun rendez-vous à venir.</div>
+          )}
         </Card>
 
         {/* Symptômes actuels */}
         <Card title="Symptômes actuels" className="bg-[#fff1df] mb-4">
           <div className="space-y-2">
-            {[
-              { label: 'Nausées matinales', niveau: 'Léger', color: 'bg-green-500' },
-              { label: 'Fatigue', niveau: 'Modéré', color: 'bg-orange-500' },
-              { label: 'Douleurs lombaires', niveau: 'Léger', color: 'bg-green-500' },
-            ].map((s) => (
-              <div key={s.label} className="flex items-center justify-between p-3 rounded-xl bg-white">
+            {(record?.symptoms || []).map((s) => (
+              <div key={s.name} className="flex items-center justify-between p-3 rounded-xl bg-white">
                 <div className="flex items-center gap-3">
-                  <span className={`w-2.5 h-2.5 rounded-full ${s.color}`}></span>
+                  <span className={`w-2.5 h-2.5 rounded-full ${s.severity === 'léger' ? 'bg-green-500' : s.severity === 'modéré' ? 'bg-orange-500' : 'bg-red-500'}`}></span>
                   <div>
-                    <div className="font-medium">{s.label}</div>
-                    <div className="text-sm text-gray-600">{s.niveau}</div>
+                    <div className="font-medium">{s.name}</div>
+                    <div className="text-sm text-gray-600">{s.severity[0].toUpperCase() + s.severity.slice(1)}</div>
                   </div>
                 </div>
                 <div>›</div>
               </div>
             ))}
+            {(!record?.symptoms || record.symptoms.length === 0) && (
+              <div className="p-3 rounded-xl bg-white text-sm text-gray-600">Aucun symptôme déclaré.</div>
+            )}
           </div>
         </Card>
 
@@ -148,33 +202,33 @@ const PregnancyDashboardPage: React.FC = memo(() => {
         {/* Médicaments */}
         <Card title="Médicaments" className="bg-[#e6f3ff] mb-4">
           <div className="space-y-2">
-            {[
-              { name: 'Acide Folique', dose: '400µg • 1 fois par jour' },
-              { name: 'Fer', dose: '65mg • 1 fois par jour' },
-            ].map(med => (
+            {(record?.medications || []).map(med => (
               <div key={med.name} className="p-3 rounded-xl bg-white">
                 <div className="font-medium">{med.name}</div>
-                <div className="text-sm text-gray-600">{med.dose}</div>
+                <div className="text-sm text-gray-600">{med.dose} • {med.frequency}</div>
               </div>
             ))}
-            <div className="text-center text-sm text-gray-600">+ 1 autre</div>
+            {(!record?.medications || record.medications.length === 0) && (
+              <div className="p-3 rounded-xl bg-white text-sm text-gray-600">Aucun médicament enregistré.</div>
+            )}
           </div>
         </Card>
 
         {/* Historique médical récent */}
         <Card title="Historique médical récent" className="bg-[#ffe8ed] mb-8">
           <div className="space-y-2">
-            {[
-              { title: 'Consultation', date: '09/09/2025', desc: 'Contrôle de routine – tout va bien.' },
-              { title: 'Échographie', date: '26/08/2025', desc: 'Échographie morphologique – développement normal' },
-              { title: 'Prise de sang', date: '12/08/2025', desc: 'Analyses sanguines – légère carence en fer' },
-            ].map(item => (
-              <div key={item.title} className="p-3 rounded-xl bg-white">
-                <div className="font-medium">{item.title}</div>
-                <div className="text-xs text-gray-500">{item.date}</div>
-                <div className="text-sm text-gray-700 mt-1">{item.desc}</div>
+            <div className="p-3 rounded-xl bg-white">
+              <div className="font-medium">Échographie</div>
+              <div className="text-xs text-gray-500">{record?.ultrasound?.date || '—'}</div>
+              <div className="text-sm text-gray-700 mt-1">{record?.ultrasound?.summary || '—'}</div>
+            </div>
+            {nextAppointment && (
+              <div className="p-3 rounded-xl bg-white">
+                <div className="font-medium">{nextAppointment.type}</div>
+                <div className="text-xs text-gray-500">{new Date(nextAppointment.date).toLocaleDateString()}</div>
+                <div className="text-sm text-gray-700 mt-1">{nextAppointment.notes || '—'}</div>
               </div>
-            ))}
+            )}
           </div>
         </Card>
       </div>

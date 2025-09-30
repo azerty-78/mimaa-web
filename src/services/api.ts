@@ -64,6 +64,41 @@ export interface Notification {
   createdAt: string;
 }
 
+// Types grossesse
+export interface PregnancyRecord {
+  id: number;
+  userId: number;
+  dueDate: string;
+  currentWeek: number;
+  lastMenstrualPeriod: string;
+  heightCm: number;
+  weightKg: number;
+  bmi: number;
+  ultrasound: {
+    date: string;
+    summary: string;
+    estimatedWeightGrams: number;
+    lengthCm: number;
+  };
+  symptoms: { name: string; severity: string }[];
+  medications: { name: string; dose: string; frequency: string }[];
+  nutrition: {
+    caloriesTarget: number;
+    waterLitersTarget: number;
+    activityTargetMinPerWeek: number;
+  };
+  notes: string;
+}
+
+export interface Appointment {
+  id: number;
+  userId: number;
+  type: string;
+  date: string; // ISO
+  status: string;
+  notes?: string;
+}
+
 // Fonction utilitaire pour les requêtes
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
@@ -186,4 +221,35 @@ export const notificationApi = {
       method: 'POST',
       body: JSON.stringify(notificationData),
     }),
+};
+
+// API pour les dossiers de grossesse
+export const pregnancyApi = {
+  getByUserId: async (userId: number): Promise<PregnancyRecord | null> => {
+    const records = await request<PregnancyRecord[]>(`/pregnancyRecords?userId=${userId}`);
+    return records.length > 0 ? records[0] : null;
+  },
+  update: (id: number, data: Partial<PregnancyRecord>): Promise<PregnancyRecord> =>
+    request<PregnancyRecord>(`/pregnancyRecords/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+};
+
+// API pour les rendez-vous
+export const appointmentApi = {
+  getByUserId: (userId: number): Promise<Appointment[]> =>
+    request<Appointment[]>(`/appointments?userId=${userId}`),
+  create: (data: Omit<Appointment, 'id'>): Promise<Appointment> =>
+    request<Appointment>('/appointments', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  update: (id: number, data: Partial<Appointment>): Promise<Appointment> =>
+    request<Appointment>(`/appointments/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+  delete: (id: number): Promise<void> =>
+    request<void>(`/appointments/${id}`, { method: 'DELETE' }),
 };
