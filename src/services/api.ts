@@ -126,6 +126,7 @@ export interface PregnancyRecord {
 export interface Appointment {
   id: number;
   userId: number;
+  doctorId?: number;
   type: string;
   date: string; // ISO
   status: string;

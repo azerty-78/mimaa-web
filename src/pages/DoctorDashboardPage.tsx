@@ -31,13 +31,15 @@ import {
   prescriptionApi, 
   emergencyContactApi,
   pregnancyApi,
-  appointmentApi,
-  type User, 
-  type DoctorPatient, 
-  type MedicalRecord,
-  type MedicalPrescription,
-  type EmergencyContact,
-  type PregnancyRecord
+  appointmentApi
+} from '../services/api';
+import type { 
+  User, 
+  DoctorPatient, 
+  MedicalRecord,
+  MedicalPrescription,
+  EmergencyContact,
+  PregnancyRecord
 } from '../services/api';
 
 const DoctorDashboardPage: React.FC = () => {

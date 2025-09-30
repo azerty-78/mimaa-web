@@ -13,7 +13,7 @@ import {
   Emergency,
   CheckCircle
 } from '@mui/icons-material';
-import { 
+import type { 
   User, 
   MedicalRecord, 
   MedicalPrescription, 
