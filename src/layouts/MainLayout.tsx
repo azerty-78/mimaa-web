@@ -7,6 +7,7 @@ import { useAuth } from '../hooks/useAuth';
 // Lazy loading des pages pour optimiser les performances
 const HomePage = lazy(() => import('../pages/HomePage'));
 const DashboardPage = lazy(() => import('../pages/DashboardPage'));
+const DoctorDashboardPage = lazy(() => import('../pages/DoctorDashboardPage'));
 const AdminDashboardPage = lazy(() => import('../pages/AdminDashboardPage'));
 const PregnancyDashboardPage = lazy(() => import('../pages/PregnancyDashboardPage'));
 const CommunityPage = lazy(() => import('../pages/CommunityPage'));
@@ -59,6 +60,8 @@ const MainLayout: React.FC = memo(() => {
           <Suspense fallback={<LoadingSpinner />}>
             {user?.profileType === 'administrator' ? (
               <AdminDashboardPage />
+            ) : user?.profileType === 'doctor' ? (
+              <DoctorDashboardPage />
             ) : user?.profileType === 'pregnant_woman' ? (
               <PregnancyDashboardPage />
             ) : (
@@ -70,6 +73,12 @@ const MainLayout: React.FC = memo(() => {
         return (
           <Suspense fallback={<LoadingSpinner />}>
             <AdminDashboardPage />
+          </Suspense>
+        );
+      case 'doctor-dashboard':
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <DoctorDashboardPage />
           </Suspense>
         );
       case 'community':

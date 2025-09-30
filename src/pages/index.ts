@@ -1,5 +1,7 @@
 export { default as HomePage } from './HomePage';
 export { default as DashboardPage } from './DashboardPage';
+export { default as DoctorDashboardPage } from './DoctorDashboardPage';
+export { default as AdminDashboardPage } from './AdminDashboardPage';
 export { default as CommunityPage } from './CommunityPage';
 export { default as SettingsPage } from './SettingsPage';
 export { default as ProfilePage } from './ProfilePage';

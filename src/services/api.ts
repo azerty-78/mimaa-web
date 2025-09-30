@@ -27,6 +27,18 @@ export interface User {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  specialty?: string;
+  licenseNumber?: string;
+  hospital?: string;
+}
+
+export interface DoctorPatient {
+  id: number;
+  doctorId: number;
+  patientId: number;
+  assignedAt: string;
+  status: 'active' | 'inactive' | 'discharged';
+  notes?: string;
 }
 
 export interface Campaign {
@@ -308,4 +320,130 @@ export const appointmentApi = {
     }),
   delete: (id: number): Promise<void> =>
     request<void>(`/appointments/${id}`, { method: 'DELETE' }),
+};
+
+// Types pour les dossiers médicaux
+export interface MedicalRecord {
+  id: number;
+  patientId: number;
+  doctorId: number;
+  recordType: 'consultation' | 'laboratory' | 'ultrasound' | 'prescription' | 'other';
+  title: string;
+  date: string;
+  content: any;
+  attachments?: Array<{
+    type: 'image' | 'pdf' | 'document';
+    name: string;
+    url: string;
+  }>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MedicalPrescription {
+  id: number;
+  patientId: number;
+  doctorId: number;
+  date: string;
+  medications: Array<{
+    name: string;
+    dosage: string;
+    frequency: string;
+    duration: string;
+    instructions: string;
+  }>;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface EmergencyContact {
+  id: number;
+  patientId: number;
+  name: string;
+  relationship: string;
+  phone: string;
+  email: string;
+  isPrimary: boolean;
+}
+
+// API pour les relations médecin-patient
+export const doctorPatientApi = {
+  getByDoctorId: (doctorId: number): Promise<DoctorPatient[]> => 
+    request<DoctorPatient[]>(`/doctorPatients?doctorId=${doctorId}`),
+  getByPatientId: (patientId: number): Promise<DoctorPatient[]> => 
+    request<DoctorPatient[]>(`/doctorPatients?patientId=${patientId}`),
+  create: (relation: Omit<DoctorPatient, 'id'>): Promise<DoctorPatient> =>
+    request<DoctorPatient>('/doctorPatients', {
+      method: 'POST',
+      body: JSON.stringify(relation),
+    }),
+  update: (id: number, relation: Partial<DoctorPatient>): Promise<DoctorPatient> =>
+    request<DoctorPatient>(`/doctorPatients/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(relation),
+    }),
+  delete: (id: number): Promise<void> =>
+    request<void>(`/doctorPatients/${id}`, { method: 'DELETE' }),
+};
+
+// API pour les dossiers médicaux
+export const medicalRecordApi = {
+  getByPatientId: (patientId: number): Promise<MedicalRecord[]> =>
+    request<MedicalRecord[]>(`/medicalRecords?patientId=${patientId}`),
+  getByDoctorId: (doctorId: number): Promise<MedicalRecord[]> =>
+    request<MedicalRecord[]>(`/medicalRecords?doctorId=${doctorId}`),
+  getById: (id: number): Promise<MedicalRecord> =>
+    request<MedicalRecord>(`/medicalRecords/${id}`),
+  create: (data: Omit<MedicalRecord, 'id' | 'createdAt' | 'updatedAt'>): Promise<MedicalRecord> =>
+    request<MedicalRecord>('/medicalRecords', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  update: (id: number, data: Partial<MedicalRecord>): Promise<MedicalRecord> =>
+    request<MedicalRecord>(`/medicalRecords/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  delete: (id: number): Promise<void> =>
+    request<void>(`/medicalRecords/${id}`, { method: 'DELETE' }),
+};
+
+// API pour les prescriptions médicales
+export const prescriptionApi = {
+  getByPatientId: (patientId: number): Promise<MedicalPrescription[]> =>
+    request<MedicalPrescription[]>(`/medicalPrescriptions?patientId=${patientId}`),
+  getByDoctorId: (doctorId: number): Promise<MedicalPrescription[]> =>
+    request<MedicalPrescription[]>(`/medicalPrescriptions?doctorId=${doctorId}`),
+  getById: (id: number): Promise<MedicalPrescription> =>
+    request<MedicalPrescription>(`/medicalPrescriptions/${id}`),
+  create: (data: Omit<MedicalPrescription, 'id' | 'createdAt'>): Promise<MedicalPrescription> =>
+    request<MedicalPrescription>('/medicalPrescriptions', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  update: (id: number, data: Partial<MedicalPrescription>): Promise<MedicalPrescription> =>
+    request<MedicalPrescription>(`/medicalPrescriptions/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  delete: (id: number): Promise<void> =>
+    request<void>(`/medicalPrescriptions/${id}`, { method: 'DELETE' }),
+};
+
+// API pour les contacts d'urgence
+export const emergencyContactApi = {
+  getByPatientId: (patientId: number): Promise<EmergencyContact[]> =>
+    request<EmergencyContact[]>(`/emergencyContacts?patientId=${patientId}`),
+  create: (data: Omit<EmergencyContact, 'id'>): Promise<EmergencyContact> =>
+    request<EmergencyContact>('/emergencyContacts', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  update: (id: number, data: Partial<EmergencyContact>): Promise<EmergencyContact> =>
+    request<EmergencyContact>(`/emergencyContacts/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  delete: (id: number): Promise<void> =>
+    request<void>(`/emergencyContacts/${id}`, { method: 'DELETE' }),
 };

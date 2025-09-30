@@ -43,7 +43,28 @@
       "region": "Littoral",
       "isActive": true,
       "createdAt": "2024-01-15T11:00:00.000Z",
-      "updatedAt": "2024-01-15T11:00:00.000Z"
+      "updatedAt": "2024-01-15T11:00:00.000Z",
+      "specialty": "Gynécologie-Obstétrique",
+      "licenseNumber": "ORDRE-2024-001",
+      "hospital": "Hôpital Central de Douala"
+    },
+    {
+      "id": 4,
+      "username": "Dr Sarah Manga",
+      "email": "dr.sarah.manga@gmail.com",
+      "password": "user1234",
+      "profileType": "doctor",
+      "profileImage": null,
+      "firstName": "Sarah",
+      "lastName": "Manga",
+      "phone": "+237 6XX XX XX 34",
+      "region": "Centre",
+      "isActive": true,
+      "createdAt": "2024-02-01T09:00:00.000Z",
+      "updatedAt": "2024-02-01T09:00:00.000Z",
+      "specialty": "Médecine Générale",
+      "licenseNumber": "ORDRE-2024-002",
+      "hospital": "Hôpital Général de Yaoundé"
     }
   ],
   "campaigns": [
@@ -238,6 +259,24 @@
       "createdAt": "2024-01-01T00:00:00.000Z"
     }
   ],
+  "doctorPatients": [
+    {
+      "id": 1,
+      "doctorId": 3,
+      "patientId": 2,
+      "assignedAt": "2024-01-20T10:00:00.000Z",
+      "status": "active",
+      "notes": "Patient suivie pour grossesse normale"
+    },
+    {
+      "id": 2,
+      "doctorId": 4,
+      "patientId": 2,
+      "assignedAt": "2024-02-01T09:00:00.000Z",
+      "status": "active",
+      "notes": "Suivi complémentaire en médecine générale"
+    }
+  ],
   "pregnancyRecords": [
     {
       "id": 1,
@@ -327,6 +366,7 @@
     {
       "id": 1,
       "userId": 2,
+      "doctorId": 3,
       "type": "Consultation prénatale",
       "date": "2025-10-09",
       "status": "scheduled",
@@ -335,6 +375,7 @@
     {
       "id": 2,
       "userId": 2,
+      "doctorId": 3,
       "type": "Consultation prénatale",
       "date": "2025-10-07T08:07:00.000Z",
       "status": "scheduled",
@@ -343,6 +384,7 @@
     {
       "id": 3,
       "userId": 2,
+      "doctorId": 3,
       "type": "Consultation prénatale",
       "date": "2025-10-07T08:07:00.000Z",
       "status": "scheduled",
@@ -351,6 +393,7 @@
     {
       "id": 4,
       "userId": 2,
+      "doctorId": 3,
       "type": "Échographie",
       "date": "2025-10-07T08:07:00.000Z",
       "status": "scheduled",
@@ -359,6 +402,7 @@
     {
       "id": 5,
       "userId": 2,
+      "doctorId": 3,
       "type": "Consultation prénatale",
       "date": "2025-10-07T08:38:00.000Z",
       "status": "scheduled",
@@ -367,10 +411,164 @@
     {
       "id": 6,
       "userId": 2,
+      "doctorId": 3,
       "type": "Analyse de sang",
       "date": "2025-10-11T08:38:00.000Z",
       "status": "scheduled",
       "notes": ""
+    }
+  ],
+  "medicalRecords": [
+    {
+      "id": 1,
+      "patientId": 2,
+      "doctorId": 3,
+      "recordType": "consultation",
+      "title": "Consultation prénatale - 24 semaines",
+      "date": "2025-09-30T10:00:00.000Z",
+      "content": {
+        "chiefComplaint": "Contrôle de routine de grossesse",
+        "history": "Patient de 28 ans, primigeste, grossesse normale jusqu'à présent",
+        "examination": {
+          "vitalSigns": {
+            "bloodPressure": "112/72 mmHg",
+            "heartRate": "78 bpm",
+            "temperature": "36.8°C",
+            "weight": "62 kg",
+            "height": "165 cm"
+          },
+          "abdominalExamination": "Utérus palpable à 24 cm de hauteur utérine, présentation céphalique",
+          "fetalHeartRate": "140 bpm",
+          "cervicalExamination": "Col long, fermé"
+        },
+        "diagnosis": "Grossesse normale à 24 semaines",
+        "treatment": "Continuation de l'acide folique et du fer",
+        "followUp": "Prochaine consultation dans 4 semaines"
+      },
+      "attachments": [
+        {
+          "type": "image",
+          "name": "echographie_24semaines.jpg",
+          "url": "/uploads/echographie_24semaines.jpg"
+        }
+      ],
+      "createdAt": "2025-09-30T10:00:00.000Z",
+      "updatedAt": "2025-09-30T10:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "patientId": 2,
+      "doctorId": 3,
+      "recordType": "laboratory",
+      "title": "Analyses de sang - 24 semaines",
+      "date": "2025-09-28T08:00:00.000Z",
+      "content": {
+        "tests": [
+          {
+            "name": "Hémoglobine",
+            "value": "11.8 g/dL",
+            "normalRange": "11.0-13.0 g/dL",
+            "status": "normal"
+          },
+          {
+            "name": "Glycémie à jeun",
+            "value": "89 mg/dL",
+            "normalRange": "70-100 mg/dL",
+            "status": "normal"
+          },
+          {
+            "name": "Protéinurie",
+            "value": "Négative",
+            "normalRange": "Négative",
+            "status": "normal"
+          }
+        ],
+        "interpretation": "Analyses normales pour le terme de grossesse"
+      },
+      "attachments": [
+        {
+          "type": "pdf",
+          "name": "resultats_analyses_24semaines.pdf",
+          "url": "/uploads/resultats_analyses_24semaines.pdf"
+        }
+      ],
+      "createdAt": "2025-09-28T08:00:00.000Z",
+      "updatedAt": "2025-09-28T08:00:00.000Z"
+    },
+    {
+      "id": 3,
+      "patientId": 2,
+      "doctorId": 3,
+      "recordType": "ultrasound",
+      "title": "Échographie morphologique - 22 semaines",
+      "date": "2025-09-15T14:30:00.000Z",
+      "content": {
+        "gestationalAge": "22 semaines + 3 jours",
+        "fetalMeasurements": {
+          "biparietalDiameter": "5.2 cm",
+          "headCircumference": "19.8 cm",
+          "abdominalCircumference": "17.2 cm",
+          "femurLength": "3.8 cm"
+        },
+        "estimatedWeight": "600 g",
+        "findings": "Anatomie fœtale normale, développement conforme au terme",
+        "recommendations": "Continuation du suivi normal"
+      },
+      "attachments": [
+        {
+          "type": "image",
+          "name": "echographie_morphologique_22sem.jpg",
+          "url": "/uploads/echographie_morphologique_22sem.jpg"
+        }
+      ],
+      "createdAt": "2025-09-15T14:30:00.000Z",
+      "updatedAt": "2025-09-15T14:30:00.000Z"
+    }
+  ],
+  "medicalPrescriptions": [
+    {
+      "id": 1,
+      "patientId": 2,
+      "doctorId": 3,
+      "date": "2025-09-30T10:00:00.000Z",
+      "medications": [
+        {
+          "name": "Acide Folique",
+          "dosage": "400 µg",
+          "frequency": "1 comprimé par jour",
+          "duration": "Jusqu'à la fin de la grossesse",
+          "instructions": "À prendre le matin avec un verre d'eau"
+        },
+        {
+          "name": "Sulfate de Fer",
+          "dosage": "65 mg",
+          "frequency": "1 comprimé par jour",
+          "duration": "3 mois",
+          "instructions": "À prendre le soir, de préférence à jeun"
+        }
+      ],
+      "notes": "Prescription de routine pour grossesse normale",
+      "createdAt": "2025-09-30T10:00:00.000Z"
+    }
+  ],
+  "emergencyContacts": [
+    {
+      "id": 1,
+      "patientId": 2,
+      "name": "Jean Hélène",
+      "relationship": "Époux",
+      "phone": "+237 6XX XX XX 13",
+      "email": "jean.helene@gmail.com",
+      "isPrimary": true
+    },
+    {
+      "id": 2,
+      "patientId": 2,
+      "name": "Marie Claire",
+      "relationship": "Sœur",
+      "phone": "+237 6XX XX XX 14",
+      "email": "marie.claire@gmail.com",
+      "isPrimary": false
     }
   ]
 }
