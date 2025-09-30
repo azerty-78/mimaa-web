@@ -73,8 +73,10 @@ const DoctorDashboardPage: React.FC = () => {
       console.log('🔍 Récupération des données pour le médecin ID:', currentDoctorId);
       
       // Récupérer les relations médecin-patient
+      console.log('🔍 Appel API pour récupérer les relations du médecin ID:', currentDoctorId);
       const doctorPatientRelations = await doctorPatientApi.getByDoctorId(currentDoctorId);
       console.log('📋 Relations médecin-patient trouvées:', doctorPatientRelations);
+      console.log('📋 Type des relations:', typeof doctorPatientRelations, Array.isArray(doctorPatientRelations));
       setDoctorPatients(doctorPatientRelations);
       
       // Récupérer les patients
