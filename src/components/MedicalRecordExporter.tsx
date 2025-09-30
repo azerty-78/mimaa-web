@@ -19,7 +19,7 @@ import type {
   MedicalPrescription, 
   EmergencyContact, 
   PregnancyRecord 
-} from '../services/api-simple';
+} from '../services/api';
 
 interface MedicalRecordExporterProps {
   patient: User;

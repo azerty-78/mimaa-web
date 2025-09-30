@@ -12,7 +12,7 @@ import {
   Assignment,
   Schedule
 } from '@mui/icons-material';
-import type { MedicalRecord } from '../services/api-simple';
+import type { MedicalRecord } from '../services/api';
 
 interface MedicalRecordViewerProps {
   record: MedicalRecord;

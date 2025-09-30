@@ -32,7 +32,7 @@ import {
   emergencyContactApi,
   pregnancyApi,
   appointmentApi
-} from '../services/api-simple';
+} from '../services/api';
 import type { 
   User, 
   DoctorPatient, 
@@ -40,7 +40,7 @@ import type {
   MedicalPrescription,
   EmergencyContact,
   PregnancyRecord
-} from '../services/api-simple';
+} from '../services/api';
 
 const DoctorDashboardPage: React.FC = () => {
   const [patients, setPatients] = useState<User[]>([]);
@@ -70,16 +70,22 @@ const DoctorDashboardPage: React.FC = () => {
     try {
       setIsLoading(true);
       
+      console.log('🔍 Récupération des données pour le médecin ID:', currentDoctorId);
+      
       // Récupérer les relations médecin-patient
       const doctorPatientRelations = await doctorPatientApi.getByDoctorId(currentDoctorId);
+      console.log('📋 Relations médecin-patient trouvées:', doctorPatientRelations);
       setDoctorPatients(doctorPatientRelations);
       
       // Récupérer les patients
       const patientIds = doctorPatientRelations.map(rel => rel.patientId);
+      console.log('👥 IDs des patients:', patientIds);
       const allPatients = await userApi.getAll();
+      console.log('👤 Tous les utilisateurs:', allPatients);
       const doctorPatients = allPatients.filter(patient => 
         patientIds.includes(patient.id) && patient.profileType === 'pregnant_woman'
       );
+      console.log('🤰 Patients femmes enceintes du médecin:', doctorPatients);
       setPatients(doctorPatients);
       
       // Récupérer les dossiers médicaux
@@ -279,6 +285,22 @@ const DoctorDashboardPage: React.FC = () => {
           >
             <TrendingUp className="mr-2" />
             Actualiser
+          </button>
+          <button 
+            className="inline-flex items-center px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700"
+            onClick={() => {
+              console.log('🔧 Test des APIs...');
+              console.log('Médecin ID:', currentDoctorId);
+              userApi.getAll().then(users => {
+                console.log('Utilisateurs:', users);
+                const doctors = users.filter(u => u.profileType === 'doctor');
+                console.log('Médecins:', doctors);
+                const pregnant = users.filter(u => u.profileType === 'pregnant_woman');
+                console.log('Femmes enceintes:', pregnant);
+              });
+            }}
+          >
+            🧪 Test APIs
           </button>
         </div>
       </div>

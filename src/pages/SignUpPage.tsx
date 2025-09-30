@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Mail, Lock, Person, Visibility, VisibilityOff, ArrowBack, CameraAlt } from '@mui/icons-material';
+import { Mail, Lock, Person, Visibility, VisibilityOff, ArrowBack, CameraAlt, LocalHospital } from '@mui/icons-material';
 import { useNavigation } from '../contexts/NavigationContext';
 import { useAuth } from '../hooks/useAuth';
+import { assignRandomDoctor } from '../services/api';
 import SlideTransition from '../components/SlideTransition';
 
 const SignUpPage: React.FC = () => {
@@ -17,6 +18,7 @@ const SignUpPage: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [assignedDoctor, setAssignedDoctor] = useState<string | null>(null);
   const { navigateToSignIn, navigateToHome } = useNavigation();
   const { register } = useAuth();
 
@@ -97,6 +99,25 @@ const SignUpPage: React.FC = () => {
       
       const success = await register(userData);
       if (success) {
+        // Si c'est une femme enceinte, assigner automatiquement un médecin
+        if (formData.profileType === 'pregnant_woman') {
+          try {
+            // Attendre un peu pour que l'utilisateur soit créé et stocké
+            setTimeout(async () => {
+              try {
+                const doctorRelation = await assignRandomDoctor(); // L'ID sera récupéré automatiquement
+                if (doctorRelation) {
+                  setAssignedDoctor('Un médecin vous a été assigné automatiquement !');
+                }
+              } catch (error) {
+                console.warn('Erreur lors de l\'assignation du médecin:', error);
+              }
+            }, 1000);
+          } catch (error) {
+            console.warn('Erreur lors de l\'assignation du médecin:', error);
+            // Ne pas bloquer l'inscription si l'assignation échoue
+          }
+        }
         navigateToHome();
       } else {
         setError('Erreur lors de la création du compte. Veuillez réessayer.');
@@ -289,6 +310,21 @@ const SignUpPage: React.FC = () => {
                 <option value="pregnant_woman">Femme enceinte</option>
                 <option value="doctor">Médecin</option>
               </select>
+              
+              {/* Message d'information pour les femmes enceintes */}
+              {formData.profileType === 'pregnant_woman' && (
+                <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-start space-x-2">
+                    <LocalHospital className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-blue-800">
+                      <p className="font-medium">Assignation automatique d'un médecin</p>
+                      <p className="text-blue-600">
+                        Un médecin sera automatiquement assigné à votre compte pour vous accompagner pendant votre grossesse.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Bouton d'inscription */}

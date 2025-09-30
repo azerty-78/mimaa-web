@@ -448,3 +448,58 @@ export const emergencyContactApi = {
   delete: (id: number): Promise<void> =>
     request<void>(`/emergencyContacts/${id}`, { method: 'DELETE' }),
 };
+
+// Fonction pour assigner automatiquement un médecin à une femme enceinte
+export const assignRandomDoctor = async (patientId?: number): Promise<DoctorPatient | null> => {
+  try {
+    // Si aucun ID n'est fourni, récupérer le dernier utilisateur créé (femme enceinte)
+    let actualPatientId = patientId;
+    if (!actualPatientId) {
+      const allUsers = await userApi.getAll();
+      const pregnantWomen = allUsers.filter(user => 
+        user.profileType === 'pregnant_woman' && user.isActive
+      );
+      
+      if (pregnantWomen.length === 0) {
+        console.warn('Aucune femme enceinte trouvée pour assignation');
+        return null;
+      }
+      
+      // Prendre la dernière femme enceinte créée
+      actualPatientId = pregnantWomen[pregnantWomen.length - 1].id;
+    }
+    
+    // Récupérer tous les médecins actifs
+    const allUsers = await userApi.getAll();
+    const doctors = allUsers.filter(user => 
+      user.profileType === 'doctor' && user.isActive
+    );
+    
+    if (doctors.length === 0) {
+      console.warn('Aucun médecin disponible pour assignation');
+      return null;
+    }
+    
+    // Sélectionner un médecin aléatoire
+    const randomDoctor = doctors[Math.floor(Math.random() * doctors.length)];
+    
+    // Créer la relation médecin-patient
+    const doctorPatientRelation: Omit<DoctorPatient, 'id'> = {
+      doctorId: randomDoctor.id,
+      patientId: actualPatientId,
+      assignedAt: new Date().toISOString(),
+      status: 'active',
+      notes: 'Assignation automatique lors de la création du compte'
+    };
+    
+    // Enregistrer la relation
+    const createdRelation = await doctorPatientApi.create(doctorPatientRelation);
+    
+    console.log(`Médecin ${randomDoctor.firstName} ${randomDoctor.lastName} assigné à la patiente ${actualPatientId}`);
+    return createdRelation;
+    
+  } catch (error) {
+    console.error('Erreur lors de l\'assignation du médecin:', error);
+    return null;
+  }
+};
