@@ -259,16 +259,16 @@ export const notificationApi = {
 // API pour les dossiers de grossesse
 export const pregnancyApi = {
   getByUserId: async (userId: number): Promise<PregnancyRecord | null> => {
-    const records = await request<PregnancyRecord[]>(`/pregnancy-records?userId=${userId}`);
+    const records = await request<PregnancyRecord[]>(`/pregnancyRecords?userId=${userId}`);
     return records.length > 0 ? records[0] : null;
   },
   create: (data: Omit<PregnancyRecord, 'id'>): Promise<PregnancyRecord> =>
-    request<PregnancyRecord>('/pregnancy-records', {
+    request<PregnancyRecord>('/pregnancyRecords', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
   update: (id: number, data: Partial<PregnancyRecord>): Promise<PregnancyRecord> =>
-    request<PregnancyRecord>(`/pregnancy-records/${id}`, {
+    request<PregnancyRecord>(`/pregnancyRecords/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     }),

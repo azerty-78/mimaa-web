@@ -82,8 +82,10 @@ const DoctorDashboardPage: React.FC = () => {
       // Récupérer les patients
       const patientIds = doctorPatientRelations.map(rel => rel.patientId);
       console.log('👥 IDs des patients:', patientIds);
+      console.log('👥 Type des IDs:', patientIds.map(id => typeof id));
       const allPatients = await userApi.getAll();
       console.log('👤 Tous les utilisateurs:', allPatients);
+      console.log('👤 Types des IDs utilisateurs:', allPatients.map(p => ({ id: p.id, type: typeof p.id })));
       const doctorPatients = allPatients.filter(patient => 
         patientIds.includes(patient.id) && patient.profileType === 'pregnant_woman'
       );
