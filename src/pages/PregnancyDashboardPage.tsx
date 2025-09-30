@@ -62,7 +62,7 @@ const PregnancyDashboardPage: React.FC = memo(() => {
     type: 'Consultation prénatale',
     notes: '',
   });
-  const isDev = import.meta.env.MODE !== 'production';
+  // const isDev = import.meta.env.MODE !== 'production';
 
   useEffect(() => { setIsVisible(true); }, []);
 
@@ -367,7 +367,10 @@ const PregnancyDashboardPage: React.FC = memo(() => {
                     <div className="text-sm text-gray-600">{s.severity[0].toUpperCase() + s.severity.slice(1)}</div>
                   </div>
                 </div>
-                <div>›</div>
+                <div className="flex items-center gap-2 text-sm">
+                  <button className="text-blue-700 underline" onClick={() => { setSymptomForm({ name: s.name, severity: s.severity as any }); setShowSymptomModal(true); }}>Éditer</button>
+                  <button className="text-red-600 underline" onClick={async () => { if (!record) return; const updated = await pregnancyApi.removeSymptom(record, s.name); setRecord(updated); }}>Supprimer</button>
+                </div>
               </div>
             ))}
             {filteredSymptoms.length === 0 && (
@@ -403,6 +406,10 @@ const PregnancyDashboardPage: React.FC = memo(() => {
               <div key={med.name} className="p-3 rounded-xl bg-white">
                 <div className="font-medium">{med.name}</div>
                 <div className="text-sm text-gray-600">{med.dose} • {med.frequency}</div>
+                <div className="mt-2 flex items-center gap-2 text-sm">
+                  <button className="text-blue-700 underline" onClick={() => { setMedForm({ name: med.name, dose: med.dose, frequency: med.frequency }); setShowMedicationModal(true); }}>Éditer</button>
+                  <button className="text-red-600 underline" onClick={async () => { if (!record) return; const updated = await pregnancyApi.removeMedication(record, med.name); setRecord(updated); }}>Supprimer</button>
+                </div>
               </div>
             ))}
             {filteredMeds.length === 0 && (
@@ -508,13 +515,7 @@ const PregnancyDashboardPage: React.FC = memo(() => {
         </div>
       )}
 
-      {/* Boutons de test (dev uniquement) */}
-      {isDev && (
-        <div className="fixed bottom-4 right-4 z-[60] space-x-2">
-          <button type="button" onClick={openSymptomModal} className="px-3 py-2 rounded-lg bg-yellow-500 text-white shadow">Test symptôme</button>
-          <button type="button" onClick={openMedicationModal} className="px-3 py-2 rounded-lg bg-indigo-600 text-white shadow">Test médicament</button>
-        </div>
-      )}
+      {/* Boutons de test retirés */}
 
       {/* Modal Ajouter Symptôme */}
       {showSymptomModal && record && (

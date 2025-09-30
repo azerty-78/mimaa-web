@@ -20,7 +20,7 @@ const CommunityChatPage = lazy(() => import('../pages/CommunityChatPage'));
 
 const MainLayout: React.FC = memo(() => {
   const { activeTab, navigateTo, navigateToSignIn } = useNavigation();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
 
   // Rediriger vers la page de connexion si l'utilisateur n'est pas authentifié
   useEffect(() => {
@@ -53,20 +53,18 @@ const MainLayout: React.FC = memo(() => {
             <HomePage />
           </Suspense>
         );
-      case 'dashboard': {
-        const auth = useAuth();
+      case 'dashboard':
         return (
           <Suspense fallback={<LoadingSpinner />}>
-            {auth.user?.profileType === 'administrator' ? (
+            {user?.profileType === 'administrator' ? (
               <AdminDashboardPage />
-            ) : auth.user?.profileType === 'pregnant_woman' ? (
+            ) : user?.profileType === 'pregnant_woman' ? (
               <PregnancyDashboardPage />
             ) : (
               <DashboardPage />
             )}
           </Suspense>
         );
-      }
       case 'admin-dashboard':
         return (
           <Suspense fallback={<LoadingSpinner />}>

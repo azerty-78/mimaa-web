@@ -177,7 +177,7 @@ export const userApi = {
   // Mettre à jour un utilisateur
   update: (id: number, userData: Partial<User>): Promise<User> =>
     request<User>(`/users/${id}`, {
-      method: 'PATCH',
+      method: 'PUT',
       body: JSON.stringify(userData),
     }),
   
@@ -253,16 +253,16 @@ export const notificationApi = {
 // API pour les dossiers de grossesse
 export const pregnancyApi = {
   getByUserId: async (userId: number): Promise<PregnancyRecord | null> => {
-    const records = await request<PregnancyRecord[]>(`/pregnancyRecords?userId=${userId}`);
+    const records = await request<PregnancyRecord[]>(`/pregnancy-records?userId=${userId}`);
     return records.length > 0 ? records[0] : null;
   },
   create: (data: Omit<PregnancyRecord, 'id'>): Promise<PregnancyRecord> =>
-    request<PregnancyRecord>('/pregnancyRecords', {
+    request<PregnancyRecord>('/pregnancy-records', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
   update: (id: number, data: Partial<PregnancyRecord>): Promise<PregnancyRecord> =>
-    request<PregnancyRecord>(`/pregnancyRecords/${id}`, {
+    request<PregnancyRecord>(`/pregnancy-records/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     }),
@@ -271,9 +271,25 @@ export const pregnancyApi = {
     symptoms.push(s);
     return pregnancyApi.update(record.id, { symptoms });
   },
+  removeSymptom: async (record: PregnancyRecord, name: string): Promise<PregnancyRecord> => {
+    const symptoms = (record.symptoms || []).filter(s => s.name !== name);
+    return pregnancyApi.update(record.id, { symptoms });
+  },
+  updateSymptom: async (record: PregnancyRecord, prevName: string, s: { name: string; severity: string }): Promise<PregnancyRecord> => {
+    const symptoms = (record.symptoms || []).map(x => x.name === prevName ? s : x);
+    return pregnancyApi.update(record.id, { symptoms });
+  },
   addMedication: async (record: PregnancyRecord, m: { name: string; dose: string; frequency: string }): Promise<PregnancyRecord> => {
     const medications = [...(record.medications || [])];
     medications.push(m);
+    return pregnancyApi.update(record.id, { medications });
+  },
+  removeMedication: async (record: PregnancyRecord, name: string): Promise<PregnancyRecord> => {
+    const medications = (record.medications || []).filter(m => m.name !== name);
+    return pregnancyApi.update(record.id, { medications });
+  },
+  updateMedication: async (record: PregnancyRecord, prevName: string, m: { name: string; dose: string; frequency: string }): Promise<PregnancyRecord> => {
+    const medications = (record.medications || []).map(x => x.name === prevName ? m : x);
     return pregnancyApi.update(record.id, { medications });
   },
   addUltrasound: async (record: PregnancyRecord, u: { date: string; summary: string; estimatedWeightGrams: number; lengthCm: number }): Promise<PregnancyRecord> => {
