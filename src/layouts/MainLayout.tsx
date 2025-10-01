@@ -28,7 +28,13 @@ const MainLayout: React.FC = memo(() => {
 
   // Rediriger vers la page de connexion si l'utilisateur n'est pas authentifié
   useEffect(() => {
-    if (!isLoading && !isChecking && !isAuthenticated && activeTab !== 'signin' && activeTab !== 'signup') {
+    // Ne pas rediriger pendant le chargement ou si on est déjà sur les pages d'auth
+    if (isLoading || isChecking || activeTab === 'signin' || activeTab === 'signup') {
+      return;
+    }
+    
+    // Rediriger seulement si l'utilisateur n'est vraiment pas authentifié
+    if (!isAuthenticated) {
       console.log('Utilisateur non authentifié, redirection vers la page de connexion');
       navigateToSignIn();
     }

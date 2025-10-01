@@ -20,6 +20,7 @@ const AICoachChatPage: React.FC = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showImagePreview, setShowImagePreview] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -41,6 +42,24 @@ const AICoachChatPage: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Initialisation du chat
+  useEffect(() => {
+    const initializeChat = async () => {
+      try {
+        console.log('🚀 Initialisation du chat IA...');
+        // Simuler un délai d'initialisation pour éviter les redirections
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setIsInitializing(false);
+        console.log('✅ Chat IA initialisé');
+      } catch (error) {
+        console.error('❌ Erreur lors de l\'initialisation:', error);
+        setIsInitializing(false);
+      }
+    };
+
+    initializeChat();
+  }, []);
 
   // Fermer le menu quand on clique à l'extérieur
   useEffect(() => {
@@ -137,8 +156,11 @@ const AICoachChatPage: React.FC = () => {
       // Utiliser l'API Gemini pour générer une réponse
       let aiResponse: string;
       
+      console.log('🚀 Début de la génération de réponse IA...');
+      
       if (selectedImage) {
         // Si une image est fournie, utiliser la méthode avec image
+        console.log('📸 Génération avec image...');
         const base64Image = selectedImage.split(',')[1]; // Enlever le préfixe data:image/jpeg;base64,
         aiResponse = await geminiService.generateContentWithImage(
           `Tu es un coach nutritionnel spécialisé pour les femmes enceintes. Tu es bienveillant, professionnel et rassurant. 
@@ -165,6 +187,7 @@ const AICoachChatPage: React.FC = () => {
         );
       } else {
         // Utiliser la méthode standard sans image
+        console.log('💬 Génération de texte simple...');
         aiResponse = await geminiService.generateContent(
           `Tu es un coach nutritionnel spécialisé pour les femmes enceintes. Tu es bienveillant, professionnel et rassurant. 
           
@@ -187,6 +210,8 @@ const AICoachChatPage: React.FC = () => {
           - Si la question n'est pas liée à la grossesse/nutrition, redirige poliment vers ces sujets`
         );
       }
+      
+      console.log('✅ Réponse IA générée avec succès');
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -196,16 +221,31 @@ const AICoachChatPage: React.FC = () => {
       };
       setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
-      console.error('Erreur lors de la génération de la réponse:', error);
+      console.error('❌ Erreur lors de la génération de la réponse:', error);
+      
+      let errorText = 'Désolé, je rencontre des difficultés techniques. Veuillez réessayer.';
+      
+      // Gestion d'erreurs spécifiques
+      if (error instanceof Error) {
+        if (error.message.includes('Timeout')) {
+          errorText = 'La requête a pris trop de temps. Veuillez réessayer avec une question plus simple.';
+        } else if (error.message.includes('API')) {
+          errorText = 'Problème de connexion avec l\'IA. Vérifiez votre connexion internet.';
+        } else if (error.message.includes('quota') || error.message.includes('limit')) {
+          errorText = 'Limite d\'utilisation atteinte. Veuillez réessayer plus tard.';
+        }
+      }
+      
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: 'Désolé, je rencontre un problème technique. Veuillez réessayer dans quelques instants.',
+        text: errorText,
         isUser: false,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsTyping(false);
+      console.log('🏁 Fin du processus de génération');
     }
   };
 
@@ -217,6 +257,22 @@ const AICoachChatPage: React.FC = () => {
     }, 100);
   };
 
+
+  // Écran de chargement pendant l'initialisation
+  if (isInitializing) {
+    return (
+      <div className="h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <SmartToy className="w-8 h-8 text-white animate-pulse" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Initialisation du Coach IA</h2>
+          <p className="text-gray-600 mb-4">Préparation de votre assistant nutritionnel...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500 mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-full flex flex-col bg-white">
