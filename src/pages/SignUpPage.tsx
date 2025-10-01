@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Mail, Lock, Person, Visibility, VisibilityOff, ArrowBack, CameraAlt, LocalHospital } from '@mui/icons-material';
+import { Mail, Lock, Person, Visibility, VisibilityOff, ArrowBack, CameraAlt, LocalHospital, PregnantWoman, Security } from '@mui/icons-material';
 import { useNavigation } from '../contexts/NavigationContext';
 import { useAuth } from '../hooks/useAuth';
 import { assignRandomDoctor } from '../services/api';
 import SlideTransition from '../components/SlideTransition';
+import MimaaLogo from '../components/MimaaLogo';
 
 const SignUpPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -135,79 +136,152 @@ const SignUpPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <SlideTransition direction="right" isVisible={true}>
-        <div className="w-full max-w-sm bg-white rounded-2xl shadow-lg p-6">
-          {/* Header avec bouton retour */}
-          <div className="flex items-center mb-6">
-            <button
-              onClick={navigateToSignIn}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <ArrowBack className="h-5 w-5 text-gray-600" />
-            </button>
-            <div className="flex-1 text-center">
-              <h1 className="text-2xl font-bold text-gray-800">Créer un compte</h1>
-              <p className="text-gray-600 text-sm">Rejoignez-nous dès aujourd'hui</p>
-            </div>
-            <div className="w-9"></div> {/* Spacer pour centrer le titre */}
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 flex">
+      {/* Section gauche - Présentation de l'application */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100 p-12 flex-col justify-center relative overflow-hidden">
+        {/* Éléments décoratifs de fond */}
+        <div className="absolute top-10 left-10 w-32 h-32 bg-pink-200 rounded-full opacity-20 animate-pulse"></div>
+        <div className="absolute top-32 right-20 w-24 h-24 bg-purple-200 rounded-full opacity-30 animate-bounce"></div>
+        <div className="absolute bottom-20 left-20 w-40 h-40 bg-blue-200 rounded-full opacity-25 animate-pulse"></div>
+        <div className="absolute bottom-32 right-10 w-20 h-20 bg-pink-300 rounded-full opacity-30 animate-bounce"></div>
+        
+        <div className="relative z-10">
+          {/* Logo et nom de l'application */}
+          <div className="mb-8">
+            <MimaaLogo size="xl" showText={true} />
           </div>
-
-          {/* Message d'erreur */}
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-              {error}
+          
+          {/* Présentation de l'application */}
+          <div className="space-y-6">
+            <h2 className="text-4xl font-bold text-gray-800 leading-tight">
+              Rejoignez la communauté MIMA'A
+            </h2>
+            
+            <p className="text-xl text-gray-600 leading-relaxed">
+              Créez votre compte et commencez votre parcours de suivi de grossesse 
+              avec l'accompagnement de professionnels de santé qualifiés.
+            </p>
+            
+            {/* Fonctionnalités principales */}
+            <div className="grid grid-cols-1 gap-4 mt-8">
+              <div className="flex items-center space-x-4 p-4 bg-white/60 backdrop-blur-sm rounded-xl">
+                <div className="p-3 bg-pink-100 rounded-full">
+                  <PregnantWoman className="w-6 h-6 text-pink-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-800">Suivi personnalisé</h3>
+                  <p className="text-sm text-gray-600">Adapté à votre profil et vos besoins</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-4 p-4 bg-white/60 backdrop-blur-sm rounded-xl">
+                <div className="p-3 bg-purple-100 rounded-full">
+                  <LocalHospital className="w-6 h-6 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-800">Équipe médicale</h3>
+                  <p className="text-sm text-gray-600">Médecins et professionnels à votre service</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-4 p-4 bg-white/60 backdrop-blur-sm rounded-xl">
+                <div className="p-3 bg-blue-100 rounded-full">
+                  <Security className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-800">Confidentialité</h3>
+                  <p className="text-sm text-gray-600">Vos données sont protégées et sécurisées</p>
+                </div>
+              </div>
             </div>
-          )}
+          </div>
+        </div>
+      </div>
 
-          {/* Formulaire d'inscription */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Photo de profil */}
-            <div className="text-center">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Photo de profil (optionnel)
-              </label>
-              <div className="relative inline-block">
-                <div className="w-20 h-20 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden">
-                  {formData.profileImage ? (
-                    <img
-                      src={URL.createObjectURL(formData.profileImage)}
-                      alt="Photo de profil"
-                      className="w-full h-full object-cover"
+      {/* Section droite - Formulaire d'inscription */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+        <SlideTransition direction="right" isVisible={true}>
+          <div className="w-full max-w-md">
+            {/* Header mobile */}
+            <div className="lg:hidden text-center mb-8">
+              <MimaaLogo size="lg" showText={true} />
+              <p className="text-gray-600 text-sm mt-4">
+                Votre compagnon de grossesse
+              </p>
+            </div>
+
+            {/* Card d'inscription */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl p-8 border border-white/20">
+              {/* Header avec bouton retour */}
+              <div className="flex items-center mb-8">
+                <button
+                  onClick={navigateToSignIn}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <ArrowBack className="h-5 w-5 text-gray-600" />
+                </button>
+                <div className="flex-1 text-center">
+                  <h1 className="text-3xl font-bold text-gray-800">Créer un compte</h1>
+                  <p className="text-gray-600">Rejoignez-nous dès aujourd'hui</p>
+                </div>
+                <div className="w-9"></div> {/* Spacer pour centrer le titre */}
+              </div>
+
+              {/* Message d'erreur */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm mb-6">
+                  {error}
+                </div>
+              )}
+
+              {/* Formulaire d'inscription */}
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Photo de profil */}
+                <div className="text-center">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Photo de profil (optionnel)
+                  </label>
+                  <div className="relative inline-block">
+                    <div className="w-20 h-20 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden">
+                      {formData.profileImage ? (
+                        <img
+                          src={URL.createObjectURL(formData.profileImage)}
+                          alt="Photo de profil"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <CameraAlt className="h-8 w-8 text-gray-400" />
+                      )}
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     />
-                  ) : (
-                    <CameraAlt className="h-8 w-8 text-gray-400" />
-                  )}
+                  </div>
                 </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-              </div>
-            </div>
 
-            {/* Nom d'utilisateur */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Nom d'utilisateur
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Person className="h-5 w-5 text-gray-400" />
+                {/* Nom d'utilisateur */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Nom d'utilisateur
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <Person className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="text"
+                      name="username"
+                      value={formData.username}
+                      onChange={handleInputChange}
+                      className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-gray-50/50 backdrop-blur-sm"
+                      placeholder="Votre nom d'utilisateur"
+                      required
+                    />
+                  </div>
                 </div>
-                <input
-                  type="text"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleInputChange}
-                  className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Votre nom d'utilisateur"
-                  required
-                />
-              </div>
-            </div>
 
             {/* Email */}
             <div>
@@ -215,7 +289,7 @@ const SignUpPage: React.FC = () => {
                 Adresse email
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <Mail className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
@@ -223,7 +297,7 @@ const SignUpPage: React.FC = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-gray-50/50 backdrop-blur-sm"
                   placeholder="votre@email.com"
                   required
                 />
@@ -236,7 +310,7 @@ const SignUpPage: React.FC = () => {
                 Mot de passe
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <Lock className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
@@ -268,7 +342,7 @@ const SignUpPage: React.FC = () => {
                 Confirmer le mot de passe
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <Lock className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
@@ -331,7 +405,7 @@ const SignUpPage: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-4 rounded-xl font-semibold hover:from-pink-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105"
             >
               {isLoading ? 'Création du compte...' : 'Créer le compte'}
             </button>
@@ -381,14 +455,16 @@ const SignUpPage: React.FC = () => {
               Vous avez déjà un compte ?{' '}
               <button 
                 onClick={navigateToSignIn}
-                className="text-blue-600 hover:text-blue-800 font-medium"
+                className="text-pink-600 hover:text-pink-800 font-semibold transition-colors"
               >
                 Se connecter
               </button>
             </p>
+              </div>
+            </div>
           </div>
-        </div>
-      </SlideTransition>
+        </SlideTransition>
+      </div>
     </div>
   );
 };
