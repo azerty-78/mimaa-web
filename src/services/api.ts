@@ -27,9 +27,34 @@ export interface User {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  // Informations professionnelles pour les médecins
   specialty?: string;
   licenseNumber?: string;
   hospital?: string;
+  yearsOfExperience?: number;
+  certifications?: string[];
+  languages?: string[];
+  consultationFee?: number;
+  availability?: {
+    monday: { start: string; end: string; available: boolean };
+    tuesday: { start: string; end: string; available: boolean };
+    wednesday: { start: string; end: string; available: boolean };
+    thursday: { start: string; end: string; available: boolean };
+    friday: { start: string; end: string; available: boolean };
+    saturday: { start: string; end: string; available: boolean };
+    sunday: { start: string; end: string; available: boolean };
+  };
+  bio?: string;
+  education?: Array<{
+    degree: string;
+    institution: string;
+    year: number;
+  }>;
+  awards?: Array<{
+    title: string;
+    year: number;
+    organization: string;
+  }>;
 }
 
 export interface DoctorPatient {

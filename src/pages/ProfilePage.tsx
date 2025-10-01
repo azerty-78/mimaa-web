@@ -1,5 +1,5 @@
 import React, { useState, memo, useEffect } from 'react';
-import { Edit, Person, Email, Phone, LocationOn, CameraAlt, Save, Close, Verified, TrendingUp, Message, Campaign, PictureAsPdf } from '@mui/icons-material';
+import { Edit, Person, Email, Phone, LocationOn, CameraAlt, Save, Close, Verified, TrendingUp, Message, Campaign, PictureAsPdf, Work, School, Star, Language, AccessTime, AttachMoney, MedicalServices, Award } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
 import { pregnancyApi, type PregnancyRecord } from '../services/api';
 import { useToast } from '../components/ToastProvider';
@@ -18,7 +18,18 @@ const ProfilePage: React.FC = memo(() => {
     lastName: user?.lastName || '',
     phone: user?.phone || '',
     region: user?.region || '',
-    profileImage: null as File | null
+    profileImage: null as File | null,
+    // Informations professionnelles pour les médecins
+    specialty: user?.specialty || '',
+    licenseNumber: user?.licenseNumber || '',
+    hospital: user?.hospital || '',
+    yearsOfExperience: user?.yearsOfExperience || 0,
+    certifications: user?.certifications || [],
+    languages: user?.languages || [],
+    consultationFee: user?.consultationFee || 0,
+    bio: user?.bio || '',
+    education: user?.education || [],
+    awards: user?.awards || []
   });
   const [record, setRecord] = useState<PregnancyRecord | null>(null);
   const [medParamsForm, setMedParamsForm] = useState({
@@ -89,7 +100,18 @@ const ProfilePage: React.FC = memo(() => {
       lastName: user?.lastName || '',
       phone: user?.phone || '',
       region: user?.region || '',
-      profileImage: null
+      profileImage: null,
+      // Informations professionnelles pour les médecins
+      specialty: user?.specialty || '',
+      licenseNumber: user?.licenseNumber || '',
+      hospital: user?.hospital || '',
+      yearsOfExperience: user?.yearsOfExperience || 0,
+      certifications: user?.certifications || [],
+      languages: user?.languages || [],
+      consultationFee: user?.consultationFee || 0,
+      bio: user?.bio || '',
+      education: user?.education || [],
+      awards: user?.awards || []
     });
     setError('');
     setIsEditModalOpen(true);
@@ -116,6 +138,17 @@ const ProfilePage: React.FC = memo(() => {
         phone: formData.phone,
         region: formData.region,
         profileImage: profileImageBase64,
+        // Informations professionnelles pour les médecins
+        specialty: formData.specialty,
+        licenseNumber: formData.licenseNumber,
+        hospital: formData.hospital,
+        yearsOfExperience: formData.yearsOfExperience,
+        certifications: formData.certifications,
+        languages: formData.languages,
+        consultationFee: formData.consultationFee,
+        bio: formData.bio,
+        education: formData.education,
+        awards: formData.awards,
       };
       await updateProfile(updatedData);
       setIsEditModalOpen(false);
@@ -343,6 +376,170 @@ const ProfilePage: React.FC = memo(() => {
           </div>
         </div>
 
+        {/* Section Informations professionnelles (visible pour médecins) */}
+        {user.profileType === 'doctor' && (
+          <div className={`bg-white rounded-2xl shadow-lg border border-gray-100 p-5 ${
+            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+          } transition-all duration-700`} style={{ animationDelay: '600ms' }}>
+            <h3 className="font-semibold text-gray-800 mb-4 flex items-center">
+              <MedicalServices className="w-5 h-5 mr-2 text-blue-500" />
+              Informations professionnelles
+            </h3>
+            
+            {/* Spécialité et expérience */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
+                <Work className="w-5 h-5 text-blue-600" />
+                <div>
+                  <p className="text-sm text-gray-600">Spécialité</p>
+                  <p className="font-medium text-gray-800">{user.specialty || 'Non renseignée'}</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
+                <TrendingUp className="w-5 h-5 text-green-600" />
+                <div>
+                  <p className="text-sm text-gray-600">Expérience</p>
+                  <p className="font-medium text-gray-800">{user.yearsOfExperience || 0} ans</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Hôpital et numéro de licence */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div className="flex items-center space-x-3 p-3 bg-purple-50 rounded-lg">
+                <LocationOn className="w-5 h-5 text-purple-600" />
+                <div>
+                  <p className="text-sm text-gray-600">Hôpital</p>
+                  <p className="font-medium text-gray-800">{user.hospital || 'Non renseigné'}</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3 p-3 bg-orange-50 rounded-lg">
+                <Verified className="w-5 h-5 text-orange-600" />
+                <div>
+                  <p className="text-sm text-gray-600">N° de licence</p>
+                  <p className="font-medium text-gray-800">{user.licenseNumber || 'Non renseigné'}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Tarif de consultation */}
+            {user.consultationFee && (
+              <div className="flex items-center space-x-3 p-3 bg-yellow-50 rounded-lg mb-4">
+                <AttachMoney className="w-5 h-5 text-yellow-600" />
+                <div>
+                  <p className="text-sm text-gray-600">Tarif de consultation</p>
+                  <p className="font-medium text-gray-800">{user.consultationFee.toLocaleString()} FCFA</p>
+                </div>
+              </div>
+            )}
+
+            {/* Bio */}
+            {user.bio && (
+              <div className="mb-4">
+                <h4 className="text-sm font-medium text-gray-600 mb-2">À propos</h4>
+                <p className="text-gray-700 text-sm leading-relaxed">{user.bio}</p>
+              </div>
+            )}
+
+            {/* Certifications */}
+            {user.certifications && user.certifications.length > 0 && (
+              <div className="mb-4">
+                <h4 className="text-sm font-medium text-gray-600 mb-2 flex items-center">
+                  <Award className="w-4 h-4 mr-1" />
+                  Certifications
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {user.certifications.map((cert, index) => (
+                    <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                      {cert}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Langues */}
+            {user.languages && user.languages.length > 0 && (
+              <div className="mb-4">
+                <h4 className="text-sm font-medium text-gray-600 mb-2 flex items-center">
+                  <Language className="w-4 h-4 mr-1" />
+                  Langues parlées
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {user.languages.map((lang, index) => (
+                    <span key={index} className="px-3 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                      {lang}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Formation */}
+            {user.education && user.education.length > 0 && (
+              <div className="mb-4">
+                <h4 className="text-sm font-medium text-gray-600 mb-2 flex items-center">
+                  <School className="w-4 h-4 mr-1" />
+                  Formation
+                </h4>
+                <div className="space-y-2">
+                  {user.education.map((edu, index) => (
+                    <div key={index} className="p-3 bg-gray-50 rounded-lg">
+                      <p className="font-medium text-gray-800">{edu.degree}</p>
+                      <p className="text-sm text-gray-600">{edu.institution} • {edu.year}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Récompenses */}
+            {user.awards && user.awards.length > 0 && (
+              <div className="mb-4">
+                <h4 className="text-sm font-medium text-gray-600 mb-2 flex items-center">
+                  <Star className="w-4 h-4 mr-1" />
+                  Récompenses
+                </h4>
+                <div className="space-y-2">
+                  {user.awards.map((award, index) => (
+                    <div key={index} className="p-3 bg-yellow-50 rounded-lg">
+                      <p className="font-medium text-gray-800">{award.title}</p>
+                      <p className="text-sm text-gray-600">{award.organization} • {award.year}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Disponibilités */}
+            {user.availability && (
+              <div>
+                <h4 className="text-sm font-medium text-gray-600 mb-2 flex items-center">
+                  <AccessTime className="w-4 h-4 mr-1" />
+                  Disponibilités
+                </h4>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  {Object.entries(user.availability).map(([day, schedule]) => (
+                    <div key={day} className={`p-2 rounded-lg text-center ${
+                      schedule.available ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'
+                    }`}>
+                      <p className="font-medium capitalize">{day === 'monday' ? 'Lun' : 
+                        day === 'tuesday' ? 'Mar' : 
+                        day === 'wednesday' ? 'Mer' : 
+                        day === 'thursday' ? 'Jeu' : 
+                        day === 'friday' ? 'Ven' : 
+                        day === 'saturday' ? 'Sam' : 'Dim'}</p>
+                      {schedule.available && (
+                        <p className="text-xs">{schedule.start} - {schedule.end}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Section Paramètres médicaux (visible pour femme enceinte) */}
         {user.profileType === 'pregnant_woman' && (
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-5">
@@ -543,6 +740,156 @@ const ProfilePage: React.FC = memo(() => {
                   <option value="Sud-Ouest">Sud-Ouest</option>
                 </select>
               </div>
+
+              {/* Informations professionnelles pour les médecins */}
+              {user?.profileType === 'doctor' && (
+                <>
+                  <div className="col-span-full">
+                    <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                      <MedicalServices className="w-5 h-5 mr-2 text-blue-500" />
+                      Informations professionnelles
+                    </h4>
+                  </div>
+
+                  {/* Spécialité */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Spécialité
+                    </label>
+                    <select
+                      name="specialty"
+                      value={formData.specialty}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">Sélectionnez votre spécialité</option>
+                      <option value="Gynécologie-Obstétrique">Gynécologie-Obstétrique</option>
+                      <option value="Médecine Générale">Médecine Générale</option>
+                      <option value="Pédiatrie">Pédiatrie</option>
+                      <option value="Cardiologie">Cardiologie</option>
+                      <option value="Dermatologie">Dermatologie</option>
+                      <option value="Neurologie">Neurologie</option>
+                      <option value="Psychiatrie">Psychiatrie</option>
+                      <option value="Radiologie">Radiologie</option>
+                      <option value="Chirurgie">Chirurgie</option>
+                      <option value="Anesthésie">Anesthésie</option>
+                      <option value="Autre">Autre</option>
+                    </select>
+                  </div>
+
+                  {/* Années d'expérience */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Années d'expérience
+                    </label>
+                    <input
+                      type="number"
+                      name="yearsOfExperience"
+                      value={formData.yearsOfExperience}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="0"
+                      min="0"
+                      max="50"
+                    />
+                  </div>
+
+                  {/* Hôpital */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Hôpital/Clinique
+                    </label>
+                    <input
+                      type="text"
+                      name="hospital"
+                      value={formData.hospital}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Nom de votre établissement"
+                    />
+                  </div>
+
+                  {/* Numéro de licence */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Numéro de licence
+                    </label>
+                    <input
+                      type="text"
+                      name="licenseNumber"
+                      value={formData.licenseNumber}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="ORDRE-XXXX-XXX"
+                    />
+                  </div>
+
+                  {/* Tarif de consultation */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Tarif de consultation (FCFA)
+                    </label>
+                    <input
+                      type="number"
+                      name="consultationFee"
+                      value={formData.consultationFee}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="0"
+                      min="0"
+                    />
+                  </div>
+
+                  {/* Bio */}
+                  <div className="col-span-full">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Biographie professionnelle
+                    </label>
+                    <textarea
+                      name="bio"
+                      value={formData.bio}
+                      onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+                      rows={3}
+                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Décrivez votre expérience et votre approche médicale..."
+                    />
+                  </div>
+
+                  {/* Langues */}
+                  <div className="col-span-full">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Langues parlées (séparées par des virgules)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.languages.join(', ')}
+                      onChange={(e) => setFormData(prev => ({ 
+                        ...prev, 
+                        languages: e.target.value.split(',').map(lang => lang.trim()).filter(lang => lang)
+                      }))}
+                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Français, Anglais, Douala"
+                    />
+                  </div>
+
+                  {/* Certifications */}
+                  <div className="col-span-full">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Certifications (séparées par des virgules)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.certifications.join(', ')}
+                      onChange={(e) => setFormData(prev => ({ 
+                        ...prev, 
+                        certifications: e.target.value.split(',').map(cert => cert.trim()).filter(cert => cert)
+                      }))}
+                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Diplôme de Médecine, Certification en Échographie"
+                    />
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Boutons d'action */}

@@ -46,7 +46,40 @@
       "updatedAt": "2024-01-15T11:00:00.000Z",
       "specialty": "Gynécologie-Obstétrique",
       "licenseNumber": "ORDRE-2024-001",
-      "hospital": "Hôpital Central de Douala"
+      "hospital": "Hôpital Central de Douala",
+      "yearsOfExperience": 8,
+      "certifications": ["Diplôme de Gynécologie-Obstétrique", "Certification en Échographie", "Formation en Médecine Fœtale"],
+      "languages": ["Français", "Anglais", "Douala"],
+      "consultationFee": 15000,
+      "availability": {
+        "monday": { "start": "08:00", "end": "17:00", "available": true },
+        "tuesday": { "start": "08:00", "end": "17:00", "available": true },
+        "wednesday": { "start": "08:00", "end": "17:00", "available": true },
+        "thursday": { "start": "08:00", "end": "17:00", "available": true },
+        "friday": { "start": "08:00", "end": "15:00", "available": true },
+        "saturday": { "start": "09:00", "end": "13:00", "available": true },
+        "sunday": { "start": "09:00", "end": "13:00", "available": false }
+      },
+      "bio": "Médecin spécialiste en Gynécologie-Obstétrique avec plus de 8 ans d'expérience. Passionné par la santé maternelle et fœtale, je m'engage à fournir des soins de qualité aux femmes enceintes.",
+      "education": [
+        {
+          "degree": "Doctorat en Médecine",
+          "institution": "Université de Douala",
+          "year": 2015
+        },
+        {
+          "degree": "Spécialisation en Gynécologie-Obstétrique",
+          "institution": "Hôpital Central de Douala",
+          "year": 2018
+        }
+      ],
+      "awards": [
+        {
+          "title": "Prix du Meilleur Médecin de l'Année",
+          "year": 2023,
+          "organization": "Ordre des Médecins du Cameroun"
+        }
+      ]
     },
     {
       "id": 4,
@@ -64,7 +97,40 @@
       "updatedAt": "2024-02-01T09:00:00.000Z",
       "specialty": "Médecine Générale",
       "licenseNumber": "ORDRE-2024-002",
-      "hospital": "Hôpital Général de Yaoundé"
+      "hospital": "Hôpital Général de Yaoundé",
+      "yearsOfExperience": 5,
+      "certifications": ["Diplôme de Médecine Générale", "Certification en Soins Primaires", "Formation en Santé Maternelle"],
+      "languages": ["Français", "Anglais", "Ewondo"],
+      "consultationFee": 10000,
+      "availability": {
+        "monday": { "start": "08:00", "end": "16:00", "available": true },
+        "tuesday": { "start": "08:00", "end": "16:00", "available": true },
+        "wednesday": { "start": "08:00", "end": "16:00", "available": true },
+        "thursday": { "start": "08:00", "end": "16:00", "available": true },
+        "friday": { "start": "08:00", "end": "14:00", "available": true },
+        "saturday": { "start": "09:00", "end": "12:00", "available": true },
+        "sunday": { "start": "09:00", "end": "12:00", "available": false }
+      },
+      "bio": "Médecin généraliste dédiée à la santé des femmes et des enfants. Avec 5 ans d'expérience, je me spécialise dans les soins préventifs et le suivi de grossesse.",
+      "education": [
+        {
+          "degree": "Doctorat en Médecine",
+          "institution": "Université de Yaoundé I",
+          "year": 2018
+        },
+        {
+          "degree": "Formation en Santé Maternelle",
+          "institution": "Hôpital Général de Yaoundé",
+          "year": 2020
+        }
+      ],
+      "awards": [
+        {
+          "title": "Certificat d'Excellence en Soins Primaires",
+          "year": 2022,
+          "organization": "Ministère de la Santé Publique"
+        }
+      ]
     }
   ],
   "campaigns": [
