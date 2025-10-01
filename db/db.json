@@ -43,11 +43,11 @@
       "region": "Littoral",
       "isActive": true,
       "createdAt": "2024-01-15T11:00:00.000Z",
-      "updatedAt": "2025-10-01T07:59:38.676Z",
+      "updatedAt": "2025-10-01T09:53:14.682Z",
       "specialty": "Pédiatrie",
       "licenseNumber": "ORDRE-2024-001",
       "hospital": "Hôpital Central de Douala",
-      "yearsOfExperience": 0,
+      "yearsOfExperience": 3,
       "certifications": [],
       "languages": [],
       "consultationFee": 0,
@@ -689,15 +689,28 @@
       "id": 1,
       "name": "Hôpital Central de Yaoundé",
       "type": "hospital",
-      "address": "Avenue Kennedy, Yaoundé",
+      "address": "Avenue Kennedy,, Yaoundé",
       "city": "Yaoundé",
       "region": "Centre",
       "phone": "+237 222 20 30 40",
       "email": "contact@hcy.cm",
       "website": "https://www.hcy.cm",
       "description": "Hôpital de référence du Cameroun, spécialisé en gynécologie-obstétrique et pédiatrie",
-      "services": ["Urgences", "Consultations", "Chirurgie", "Maternité", "Pédiatrie", "Laboratoire", "Imagerie"],
-      "specialties": ["Gynécologie-Obstétrique", "Pédiatrie", "Chirurgie", "Médecine interne"],
+      "services": [
+        "Urgences",
+        "Consultations",
+        "Chirurgie",
+        "Maternité",
+        "Pédiatrie",
+        "Laboratoire",
+        "Imagerie"
+      ],
+      "specialties": [
+        "Gynécologie-Obstétrique",
+        "Pédiatrie",
+        "Chirurgie",
+        "Médecine interne"
+      ],
       "capacity": 500,
       "isActive": true,
       "coordinates": {
@@ -706,7 +719,7 @@
       },
       "images": [],
       "createdAt": "2024-01-01T00:00:00.000Z",
-      "updatedAt": "2024-01-01T00:00:00.000Z"
+      "updatedAt": "2025-10-01T09:51:46.577Z"
     },
     {
       "id": 2,
@@ -719,8 +732,20 @@
       "email": "info@laquintinie.cm",
       "website": "https://www.laquintinie.cm",
       "description": "Hôpital public de référence du Littoral, centre d'excellence en maternité",
-      "services": ["Maternité", "Urgences", "Consultations", "Chirurgie", "Pédiatrie", "Laboratoire"],
-      "specialties": ["Gynécologie-Obstétrique", "Pédiatrie", "Anesthésie", "Radiologie"],
+      "services": [
+        "Maternité",
+        "Urgences",
+        "Consultations",
+        "Chirurgie",
+        "Pédiatrie",
+        "Laboratoire"
+      ],
+      "specialties": [
+        "Gynécologie-Obstétrique",
+        "Pédiatrie",
+        "Anesthésie",
+        "Radiologie"
+      ],
       "capacity": 300,
       "isActive": true,
       "coordinates": {
@@ -741,8 +766,18 @@
       "phone": "+237 222 22 33 44",
       "email": "maternite@clinique-yaounde.cm",
       "description": "Clinique spécialisée dans le suivi de grossesse et l'accouchement",
-      "services": ["Suivi de grossesse", "Accouchement", "Échographie", "Consultations prénatales", "Planning familial"],
-      "specialties": ["Gynécologie-Obstétrique", "Échographie", "Suivi de grossesse"],
+      "services": [
+        "Suivi de grossesse",
+        "Accouchement",
+        "Échographie",
+        "Consultations prénatales",
+        "Planning familial"
+      ],
+      "specialties": [
+        "Gynécologie-Obstétrique",
+        "Échographie",
+        "Suivi de grossesse"
+      ],
       "capacity": 100,
       "isActive": true,
       "coordinates": {
@@ -763,8 +798,18 @@
       "phone": "+237 233 44 55 66",
       "email": "csi@bafoussam.cm",
       "description": "Centre de santé communautaire offrant des services de base et de suivi de grossesse",
-      "services": ["Consultations générales", "Suivi de grossesse", "Vaccination", "Planning familial", "Laboratoire"],
-      "specialties": ["Médecine générale", "Suivi de grossesse", "Pédiatrie"],
+      "services": [
+        "Consultations générales",
+        "Suivi de grossesse",
+        "Vaccination",
+        "Planning familial",
+        "Laboratoire"
+      ],
+      "specialties": [
+        "Médecine générale",
+        "Suivi de grossesse",
+        "Pédiatrie"
+      ],
       "capacity": 50,
       "isActive": true,
       "coordinates": {
@@ -785,8 +830,22 @@
       "phone": "+237 222 25 30 40",
       "email": "hgg@garoua.cm",
       "description": "Hôpital régional du Nord, services complets de santé",
-      "services": ["Urgences", "Consultations", "Chirurgie", "Maternité", "Pédiatrie", "Laboratoire", "Imagerie", "Pharmacie"],
-      "specialties": ["Médecine générale", "Gynécologie-Obstétrique", "Pédiatrie", "Chirurgie"],
+      "services": [
+        "Urgences",
+        "Consultations",
+        "Chirurgie",
+        "Maternité",
+        "Pédiatrie",
+        "Laboratoire",
+        "Imagerie",
+        "Pharmacie"
+      ],
+      "specialties": [
+        "Médecine générale",
+        "Gynécologie-Obstétrique",
+        "Pédiatrie",
+        "Chirurgie"
+      ],
       "capacity": 200,
       "isActive": true,
       "coordinates": {
@@ -808,8 +867,18 @@
       "email": "info@clinique-plateau.cm",
       "website": "https://www.clinique-plateau.cm",
       "description": "Clinique privée moderne spécialisée en gynécologie et obstétrique",
-      "services": ["Consultations spécialisées", "Échographie 3D", "Suivi de grossesse", "Accouchement", "Chirurgie gynécologique"],
-      "specialties": ["Gynécologie-Obstétrique", "Échographie", "Chirurgie gynécologique"],
+      "services": [
+        "Consultations spécialisées",
+        "Échographie 3D",
+        "Suivi de grossesse",
+        "Accouchement",
+        "Chirurgie gynécologique"
+      ],
+      "specialties": [
+        "Gynécologie-Obstétrique",
+        "Échographie",
+        "Chirurgie gynécologique"
+      ],
       "capacity": 80,
       "isActive": true,
       "coordinates": {
@@ -830,13 +899,22 @@
       "phone": "+237 233 45 67 89",
       "email": "csn@nkongsamba.cm",
       "description": "Centre de santé de proximité pour le suivi de grossesse en zone rurale",
-      "services": ["Consultations", "Suivi de grossesse", "Vaccination", "Planning familial", "Urgences de base"],
-      "specialties": ["Médecine générale", "Suivi de grossesse"],
+      "services": [
+        "Consultations",
+        "Suivi de grossesse",
+        "Vaccination",
+        "Planning familial",
+        "Urgences de base"
+      ],
+      "specialties": [
+        "Médecine générale",
+        "Suivi de grossesse"
+      ],
       "capacity": 30,
       "isActive": true,
       "coordinates": {
         "latitude": 4.954,
-        "longitude": 9.940
+        "longitude": 9.94
       },
       "images": [],
       "createdAt": "2024-01-01T00:00:00.000Z",
@@ -852,8 +930,19 @@
       "phone": "+237 222 24 25 26",
       "email": "hdb@bertoua.cm",
       "description": "Hôpital de district de l'Est, services de santé essentiels",
-      "services": ["Urgences", "Consultations", "Maternité", "Pédiatrie", "Laboratoire", "Pharmacie"],
-      "specialties": ["Médecine générale", "Gynécologie-Obstétrique", "Pédiatrie"],
+      "services": [
+        "Urgences",
+        "Consultations",
+        "Maternité",
+        "Pédiatrie",
+        "Laboratoire",
+        "Pharmacie"
+      ],
+      "specialties": [
+        "Médecine générale",
+        "Gynécologie-Obstétrique",
+        "Pédiatrie"
+      ],
       "capacity": 150,
       "isActive": true,
       "coordinates": {
