@@ -497,7 +497,7 @@ const ProfilePage: React.FC = memo(() => {
             {user.awards && user.awards.length > 0 && (
               <div className="mb-4">
                 <h4 className="text-sm font-medium text-gray-600 mb-2 flex items-center">
-                  <Star className="w-4 h-4 mr-1" />
+                  <EmojiEvents className="w-4 h-4 mr-1" />
                   Récompenses
                 </h4>
                 <div className="space-y-2">
