@@ -311,6 +311,249 @@ const server = http.createServer((req, res) => {
       return res.end(JSON.stringify(removed));
     }
   }
+  // Routes pour les dossiers médicaux
+  else if (pathname.startsWith('/medicalRecords')) {
+    const segments = pathname.split('/').filter(Boolean);
+    const id = segments[1] ? Number(segments[1]) : null;
+    
+    if (req.method === 'GET') {
+      const { doctorId, patientId } = query;
+      let records = db.medicalRecords || [];
+      
+      if (doctorId) {
+        records = records.filter(record => Number(record.doctorId) === Number(doctorId));
+      }
+      if (patientId) {
+        records = records.filter(record => Number(record.patientId) === Number(patientId));
+      }
+      
+      const result = id ? (records.find(record => Number(record.id) === Number(id)) || null) : records;
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify(result));
+    }
+    
+    if (req.method === 'POST') {
+      let body = '';
+      req.on('data', chunk => { body += chunk.toString(); });
+      req.on('end', () => {
+        try {
+          const payload = JSON.parse(body || '{}');
+          if (!db.medicalRecords) db.medicalRecords = [];
+          const nextId = db.medicalRecords.length ? Math.max(...db.medicalRecords.map(r => r.id || 0)) + 1 : 1;
+          const newRecord = { id: nextId, ...payload };
+          db.medicalRecords.push(newRecord);
+          try { fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8'); } catch {}
+          res.writeHead(201, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify(newRecord));
+        } catch (e) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: 'Invalid JSON' }));
+        }
+      });
+      return;
+    }
+    
+    if ((req.method === 'PUT' || req.method === 'PATCH') && id) {
+      let body = '';
+      req.on('data', chunk => { body += chunk.toString(); });
+      req.on('end', () => {
+        try {
+          const payload = JSON.parse(body || '{}');
+          const list = db.medicalRecords || [];
+          const idx = list.findIndex(record => Number(record.id) === Number(id));
+          if (idx === -1) {
+            res.writeHead(404, { 'Content-Type': 'application/json' });
+            return res.end(JSON.stringify({ error: 'Not Found' }));
+          }
+          const updated = { ...list[idx], ...payload, id: Number(id) };
+          list[idx] = updated;
+          db.medicalRecords = list;
+          try { fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8'); } catch {}
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify(updated));
+        } catch (e) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: 'Invalid JSON' }));
+        }
+      });
+      return;
+    }
+    
+    if (req.method === 'DELETE' && id) {
+      const list = db.medicalRecords || [];
+      const idx = list.findIndex(record => Number(record.id) === Number(id));
+      if (idx === -1) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: 'Not Found' }));
+      }
+      const removed = list.splice(idx, 1)[0];
+      db.medicalRecords = list;
+      try { fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8'); } catch {}
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify(removed));
+    }
+  }
+  // Routes pour les prescriptions médicales
+  else if (pathname.startsWith('/medicalPrescriptions')) {
+    const segments = pathname.split('/').filter(Boolean);
+    const id = segments[1] ? Number(segments[1]) : null;
+    
+    if (req.method === 'GET') {
+      const { doctorId, patientId } = query;
+      let prescriptions = db.medicalPrescriptions || [];
+      
+      if (doctorId) {
+        prescriptions = prescriptions.filter(prescription => Number(prescription.doctorId) === Number(doctorId));
+      }
+      if (patientId) {
+        prescriptions = prescriptions.filter(prescription => Number(prescription.patientId) === Number(patientId));
+      }
+      
+      const result = id ? (prescriptions.find(prescription => Number(prescription.id) === Number(id)) || null) : prescriptions;
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify(result));
+    }
+    
+    if (req.method === 'POST') {
+      let body = '';
+      req.on('data', chunk => { body += chunk.toString(); });
+      req.on('end', () => {
+        try {
+          const payload = JSON.parse(body || '{}');
+          if (!db.medicalPrescriptions) db.medicalPrescriptions = [];
+          const nextId = db.medicalPrescriptions.length ? Math.max(...db.medicalPrescriptions.map(p => p.id || 0)) + 1 : 1;
+          const newPrescription = { id: nextId, ...payload };
+          db.medicalPrescriptions.push(newPrescription);
+          try { fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8'); } catch {}
+          res.writeHead(201, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify(newPrescription));
+        } catch (e) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: 'Invalid JSON' }));
+        }
+      });
+      return;
+    }
+    
+    if ((req.method === 'PUT' || req.method === 'PATCH') && id) {
+      let body = '';
+      req.on('data', chunk => { body += chunk.toString(); });
+      req.on('end', () => {
+        try {
+          const payload = JSON.parse(body || '{}');
+          const list = db.medicalPrescriptions || [];
+          const idx = list.findIndex(prescription => Number(prescription.id) === Number(id));
+          if (idx === -1) {
+            res.writeHead(404, { 'Content-Type': 'application/json' });
+            return res.end(JSON.stringify({ error: 'Not Found' }));
+          }
+          const updated = { ...list[idx], ...payload, id: Number(id) };
+          list[idx] = updated;
+          db.medicalPrescriptions = list;
+          try { fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8'); } catch {}
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify(updated));
+        } catch (e) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: 'Invalid JSON' }));
+        }
+      });
+      return;
+    }
+    
+    if (req.method === 'DELETE' && id) {
+      const list = db.medicalPrescriptions || [];
+      const idx = list.findIndex(prescription => Number(prescription.id) === Number(id));
+      if (idx === -1) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: 'Not Found' }));
+      }
+      const removed = list.splice(idx, 1)[0];
+      db.medicalPrescriptions = list;
+      try { fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8'); } catch {}
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify(removed));
+    }
+  }
+  // Routes pour les contacts d'urgence
+  else if (pathname.startsWith('/emergencyContacts')) {
+    const segments = pathname.split('/').filter(Boolean);
+    const id = segments[1] ? Number(segments[1]) : null;
+    
+    if (req.method === 'GET') {
+      const { patientId } = query;
+      let contacts = db.emergencyContacts || [];
+      
+      if (patientId) {
+        contacts = contacts.filter(contact => Number(contact.patientId) === Number(patientId));
+      }
+      
+      const result = id ? (contacts.find(contact => Number(contact.id) === Number(id)) || null) : contacts;
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify(result));
+    }
+    
+    if (req.method === 'POST') {
+      let body = '';
+      req.on('data', chunk => { body += chunk.toString(); });
+      req.on('end', () => {
+        try {
+          const payload = JSON.parse(body || '{}');
+          if (!db.emergencyContacts) db.emergencyContacts = [];
+          const nextId = db.emergencyContacts.length ? Math.max(...db.emergencyContacts.map(c => c.id || 0)) + 1 : 1;
+          const newContact = { id: nextId, ...payload };
+          db.emergencyContacts.push(newContact);
+          try { fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8'); } catch {}
+          res.writeHead(201, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify(newContact));
+        } catch (e) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: 'Invalid JSON' }));
+        }
+      });
+      return;
+    }
+    
+    if ((req.method === 'PUT' || req.method === 'PATCH') && id) {
+      let body = '';
+      req.on('data', chunk => { body += chunk.toString(); });
+      req.on('end', () => {
+        try {
+          const payload = JSON.parse(body || '{}');
+          const list = db.emergencyContacts || [];
+          const idx = list.findIndex(contact => Number(contact.id) === Number(id));
+          if (idx === -1) {
+            res.writeHead(404, { 'Content-Type': 'application/json' });
+            return res.end(JSON.stringify({ error: 'Not Found' }));
+          }
+          const updated = { ...list[idx], ...payload, id: Number(id) };
+          list[idx] = updated;
+          db.emergencyContacts = list;
+          try { fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8'); } catch {}
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify(updated));
+        } catch (e) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: 'Invalid JSON' }));
+        }
+      });
+      return;
+    }
+    
+    if (req.method === 'DELETE' && id) {
+      const list = db.emergencyContacts || [];
+      const idx = list.findIndex(contact => Number(contact.id) === Number(id));
+      if (idx === -1) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: 'Not Found' }));
+      }
+      const removed = list.splice(idx, 1)[0];
+      db.emergencyContacts = list;
+      try { fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8'); } catch {}
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify(removed));
+    }
+  }
   // Pregnancy records CRUD
   else if (pathname.startsWith('/pregnancy-records')) {
     const segments = pathname.split('/').filter(Boolean);

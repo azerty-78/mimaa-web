@@ -64,11 +64,20 @@ const ProfilePage: React.FC = memo(() => {
   }, [user]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    const { name, value, type } = e.target;
+    
+    // Gérer les champs numériques
+    if (type === 'number') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value === '' ? 0 : Number(value)
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -875,18 +884,237 @@ const ProfilePage: React.FC = memo(() => {
                   {/* Certifications */}
                   <div className="col-span-full">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Certifications (séparées par des virgules)
+                      Certifications
                     </label>
-                    <input
-                      type="text"
-                      value={formData.certifications.join(', ')}
-                      onChange={(e) => setFormData(prev => ({ 
-                        ...prev, 
-                        certifications: e.target.value.split(',').map(cert => cert.trim()).filter(cert => cert)
-                      }))}
-                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Diplôme de Médecine, Certification en Échographie"
-                    />
+                    <div className="space-y-2">
+                      {formData.certifications.map((cert, index) => (
+                        <div key={index} className="flex items-center space-x-2">
+                          <input
+                            type="text"
+                            value={cert}
+                            onChange={(e) => {
+                              const newCerts = [...formData.certifications];
+                              newCerts[index] = e.target.value;
+                              setFormData(prev => ({ ...prev, certifications: newCerts }));
+                            }}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Nom de la certification"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newCerts = formData.certifications.filter((_, i) => i !== index);
+                              setFormData(prev => ({ ...prev, certifications: newCerts }));
+                            }}
+                            className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            Supprimer
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData(prev => ({ 
+                            ...prev, 
+                            certifications: [...prev.certifications, ''] 
+                          }));
+                        }}
+                        className="w-full px-3 py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-500 hover:text-blue-500 transition-colors"
+                      >
+                        + Ajouter une certification
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Langues */}
+                  <div className="col-span-full">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Langues parlées
+                    </label>
+                    <div className="space-y-2">
+                      {formData.languages.map((lang, index) => (
+                        <div key={index} className="flex items-center space-x-2">
+                          <input
+                            type="text"
+                            value={lang}
+                            onChange={(e) => {
+                              const newLangs = [...formData.languages];
+                              newLangs[index] = e.target.value;
+                              setFormData(prev => ({ ...prev, languages: newLangs }));
+                            }}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Nom de la langue"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newLangs = formData.languages.filter((_, i) => i !== index);
+                              setFormData(prev => ({ ...prev, languages: newLangs }));
+                            }}
+                            className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            Supprimer
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData(prev => ({ 
+                            ...prev, 
+                            languages: [...prev.languages, ''] 
+                          }));
+                        }}
+                        className="w-full px-3 py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-500 hover:text-blue-500 transition-colors"
+                      >
+                        + Ajouter une langue
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Formation */}
+                  <div className="col-span-full">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Formation
+                    </label>
+                    <div className="space-y-3">
+                      {formData.education.map((edu, index) => (
+                        <div key={index} className="p-3 border border-gray-300 rounded-lg space-y-2">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <input
+                              type="text"
+                              value={edu.degree}
+                              onChange={(e) => {
+                                const newEducation = [...formData.education];
+                                newEducation[index] = { ...edu, degree: e.target.value };
+                                setFormData(prev => ({ ...prev, education: newEducation }));
+                              }}
+                              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              placeholder="Diplôme/Degré"
+                            />
+                            <input
+                              type="text"
+                              value={edu.institution}
+                              onChange={(e) => {
+                                const newEducation = [...formData.education];
+                                newEducation[index] = { ...edu, institution: e.target.value };
+                                setFormData(prev => ({ ...prev, education: newEducation }));
+                              }}
+                              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              placeholder="Institution"
+                            />
+                            <input
+                              type="number"
+                              value={edu.year}
+                              onChange={(e) => {
+                                const newEducation = [...formData.education];
+                                newEducation[index] = { ...edu, year: Number(e.target.value) };
+                                setFormData(prev => ({ ...prev, education: newEducation }));
+                              }}
+                              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              placeholder="Année"
+                              min="1900"
+                              max="2030"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newEducation = formData.education.filter((_, i) => i !== index);
+                                setFormData(prev => ({ ...prev, education: newEducation }));
+                              }}
+                              className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            >
+                              Supprimer
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData(prev => ({ 
+                            ...prev, 
+                            education: [...prev.education, { degree: '', institution: '', year: new Date().getFullYear() }] 
+                          }));
+                        }}
+                        className="w-full px-3 py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-500 hover:text-blue-500 transition-colors"
+                      >
+                        + Ajouter une formation
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Récompenses */}
+                  <div className="col-span-full">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Récompenses
+                    </label>
+                    <div className="space-y-3">
+                      {formData.awards.map((award, index) => (
+                        <div key={index} className="p-3 border border-gray-300 rounded-lg space-y-2">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <input
+                              type="text"
+                              value={award.title}
+                              onChange={(e) => {
+                                const newAwards = [...formData.awards];
+                                newAwards[index] = { ...award, title: e.target.value };
+                                setFormData(prev => ({ ...prev, awards: newAwards }));
+                              }}
+                              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              placeholder="Titre de la récompense"
+                            />
+                            <input
+                              type="text"
+                              value={award.organization}
+                              onChange={(e) => {
+                                const newAwards = [...formData.awards];
+                                newAwards[index] = { ...award, organization: e.target.value };
+                                setFormData(prev => ({ ...prev, awards: newAwards }));
+                              }}
+                              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              placeholder="Organisation"
+                            />
+                            <input
+                              type="number"
+                              value={award.year}
+                              onChange={(e) => {
+                                const newAwards = [...formData.awards];
+                                newAwards[index] = { ...award, year: Number(e.target.value) };
+                                setFormData(prev => ({ ...prev, awards: newAwards }));
+                              }}
+                              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              placeholder="Année"
+                              min="1900"
+                              max="2030"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newAwards = formData.awards.filter((_, i) => i !== index);
+                                setFormData(prev => ({ ...prev, awards: newAwards }));
+                              }}
+                              className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            >
+                              Supprimer
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData(prev => ({ 
+                            ...prev, 
+                            awards: [...prev.awards, { title: '', organization: '', year: new Date().getFullYear() }] 
+                          }));
+                        }}
+                        className="w-full px-3 py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-500 hover:text-blue-500 transition-colors"
+                      >
+                        + Ajouter une récompense
+                      </button>
+                    </div>
                   </div>
                 </>
               )}
