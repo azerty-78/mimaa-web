@@ -1,6 +1,7 @@
 import React, { useEffect, Suspense, lazy, memo } from 'react';
 import TopBar from '../components/TopBar';
 import BottomBar from '../components/BottomBar';
+import NetworkStatusBanner from '../components/NetworkStatusBanner';
 import { useNavigation } from '../contexts/NavigationContext';
 import { useAuth } from '../hooks/useAuth';
 import { useServerRestart } from '../hooks/useServerRestart';
@@ -185,8 +186,11 @@ const MainLayout: React.FC = memo(() => {
 
   return (
     <div className="h-screen w-full flex flex-col bg-gray-100 overflow-hidden m-0 p-0">
+      {/* Bannière de statut réseau */}
+      <NetworkStatusBanner />
+      
       {/* TopBar - Fixe en haut */}
-      <div className="fixed top-0 left-0 right-0 z-50">
+      <div className="fixed top-0 left-0 right-0 z-40">
         <TopBar onLogout={handleLogout} />
       </div>
       

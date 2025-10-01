@@ -1,12 +1,28 @@
-// Détection automatique de l'URL de l'API
+// Détection automatique de l'URL de l'API avec support ngrok amélioré
 const getApiBaseUrl = () => {
-  // En développement local ou sur ngrok, utiliser le proxy Vite
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+  const hostname = window.location.hostname;
+  
+  // En développement local
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
     return 'http://localhost:3001';
   }
   
-  // Sur ngrok, utiliser le proxy Vite qui redirige vers localhost:3001
-  // Le proxy Vite transforme /api/users en localhost:3001/users
+  // Détection ngrok (tous les domaines ngrok possibles)
+  const isNgrok = hostname.includes('ngrok') || 
+                  hostname.includes('ngrok-free.app') || 
+                  hostname.includes('ngrok.app') || 
+                  hostname.includes('ngrok.io');
+  
+  if (isNgrok) {
+    // Sur ngrok, utiliser le proxy Vite qui redirige vers localhost:3001
+    // Le proxy Vite transforme /api/users en localhost:3001/users
+    console.log('🌐 Détection ngrok - utilisation du proxy Vite');
+    return '/api';
+  }
+  
+  // Pour d'autres environnements (production, staging, etc.)
+  // Utiliser le proxy Vite par défaut
+  console.log('🌐 Environnement non-local - utilisation du proxy Vite');
   return '/api';
 };
 
@@ -158,7 +174,15 @@ export interface Appointment {
   notes?: string;
 }
 
-// Fonction utilitaire pour les requêtes
+// Configuration des timeouts et retry
+const REQUEST_TIMEOUT = 10000; // 10 secondes
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1 seconde
+
+// Fonction pour attendre un délai
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Fonction utilitaire pour les requêtes avec retry et timeout
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   let url = `${API_BASE_URL}${endpoint}`;
   const config: RequestInit = {
@@ -169,30 +193,87 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     ...options,
   };
 
-  try {
-    console.log('Making API request to:', url);
-    const response = await fetch(url, config);
-    
-    if (!response.ok) {
-      console.error('API request failed:', response.status, response.statusText);
-      // Fallback dev: si on utilise '/api' et que ça échoue, réessayer localhost:3001
-      if (API_BASE_URL === '/api') {
-        const fallbackUrl = `http://localhost:3001${endpoint}`;
-        console.warn('Retrying request with fallback URL:', fallbackUrl);
-        const retry = await fetch(fallbackUrl, config);
-        if (!retry.ok) throw new Error(`HTTP error! status: ${retry.status}`);
-        return await retry.json();
+  // Ajouter un timeout à la requête
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+  config.signal = controller.signal;
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      console.log(`Making API request to: ${url} (attempt ${attempt}/${MAX_RETRIES})`);
+      const response = await fetch(url, config);
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        console.error(`API request failed: ${response.status} ${response.statusText}`);
+        
+        // Fallback dev: si on utilise '/api' et que ça échoue, réessayer localhost:3001
+        if (API_BASE_URL === '/api' && attempt === 1) {
+          const fallbackUrl = `http://localhost:3001${endpoint}`;
+          console.warn('Retrying request with fallback URL:', fallbackUrl);
+          const retryConfig = { ...config };
+          delete retryConfig.signal; // Reset signal for retry
+          const retryController = new AbortController();
+          const retryTimeoutId = setTimeout(() => retryController.abort(), REQUEST_TIMEOUT);
+          retryConfig.signal = retryController.signal;
+          
+          try {
+            const retry = await fetch(fallbackUrl, retryConfig);
+            clearTimeout(retryTimeoutId);
+            if (!retry.ok) throw new Error(`HTTP error! status: ${retry.status}`);
+            return await retry.json();
+          } catch (retryError) {
+            clearTimeout(retryTimeoutId);
+            console.warn('Fallback request also failed:', retryError);
+          }
+        }
+        
+        // Si c'est une erreur 4xx, ne pas retry
+        if (response.status >= 400 && response.status < 500) {
+          throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
+        }
+        
+        // Pour les erreurs 5xx, retry
+        if (attempt < MAX_RETRIES) {
+          console.warn(`Retrying in ${RETRY_DELAY}ms...`);
+          await delay(RETRY_DELAY * attempt); // Délai progressif
+          continue;
+        }
+        
+        throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
       }
-      throw new Error(`HTTP error! status: ${response.status}`);
+      
+      return await response.json();
+    } catch (error) {
+      clearTimeout(timeoutId);
+      
+      // Si c'est une erreur d'abort (timeout), retry
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.warn(`Request timeout (${REQUEST_TIMEOUT}ms) on attempt ${attempt}`);
+        if (attempt < MAX_RETRIES) {
+          console.warn(`Retrying in ${RETRY_DELAY}ms...`);
+          await delay(RETRY_DELAY * attempt);
+          continue;
+        }
+        throw new Error('Request timeout - Le serveur met trop de temps à répondre');
+      }
+      
+      // Pour les erreurs réseau, retry
+      if (attempt < MAX_RETRIES) {
+        console.warn(`Network error on attempt ${attempt}, retrying in ${RETRY_DELAY}ms...`, error);
+        await delay(RETRY_DELAY * attempt);
+        continue;
+      }
+      
+      console.error('API request failed after all retries:', error);
+      console.error('Request URL:', url);
+      console.error('Request config:', config);
+      throw error;
     }
-    
-    return await response.json();
-  } catch (error) {
-    console.error('API request failed:', error);
-    console.error('Request URL:', url);
-    console.error('Request config:', config);
-    throw error;
   }
+  
+  throw new Error('Maximum retry attempts exceeded');
 }
 
 // API pour les utilisateurs

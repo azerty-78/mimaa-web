@@ -27,8 +27,8 @@ const SignInPage: React.FC = () => {
     try {
       const success = await login(email, password);
       if (success) {
-        // Après login, router vers dashboard qui choisit la page suivant le profileType
-        navigateTo('dashboard');
+        // Après login, rediriger vers la page d'accueil
+        navigateTo('home');
       } else {
         setError('Email ou mot de passe incorrect');
       }

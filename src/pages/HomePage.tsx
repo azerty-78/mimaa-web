@@ -1,18 +1,7 @@
 import React, { memo, useState, useEffect } from 'react';
 import { MedicalServices, LocalHospital, MoreVert, Share, Favorite, Comment, Verified, Close } from '@mui/icons-material';
 import { useToast } from '../components/ToastProvider';
-
-type Campaign = {
-  id: number;
-  title: string;
-  description?: string | null;
-  organizer?: string | null;
-  imageUrl?: string | null;
-  link?: string | null;
-  status?: string | null;
-  officialUrl?: string | null;
-  thumbnailUrl?: string | null;
-};
+import { campaignApi, type Campaign } from '../services/api';
 
 const HomePage: React.FC = memo(() => {
   const [isVisible, setIsVisible] = useState(false);
@@ -33,6 +22,8 @@ const HomePage: React.FC = memo(() => {
   const [openComments, setOpenComments] = useState<Record<number, boolean>>({});
   const [commentTexts, setCommentTexts] = useState<Record<number, string>>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   const getTitleImage = (title: string) => buildSvgDataUri(title);
 
@@ -73,22 +64,6 @@ const HomePage: React.FC = memo(() => {
       } catch {}
     }
 
-    const fetchCampaigns = async () => {
-      try {
-        setIsLoading(true);
-        const response = await fetch('http://localhost:3001/campaigns', { signal: controller.signal, cache: 'no-store' });
-        if (!response.ok) throw new Error('Network error');
-        const data: Campaign[] = await response.json();
-        setCampaigns(Array.isArray(data) ? data : []);
-        try { sessionStorage.setItem('campaigns', JSON.stringify(Array.isArray(data) ? data : [])); } catch {}
-      } catch (error) {
-        if ((error as any)?.name !== 'AbortError') {
-          setCampaigns([]);
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
 
     const triggerReload = () => {
       // Invalider le cache pour forcer rechargement
@@ -150,6 +125,36 @@ const HomePage: React.FC = memo(() => {
     toast.show('Commentaire envoyé', 'success');
   };
 
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
+    // Invalider le cache et recharger
+    try { sessionStorage.removeItem('campaigns'); } catch {}
+    fetchCampaigns();
+  };
+
+  const fetchCampaigns = async () => {
+    try {
+      setIsLoading(true);
+      setHasError(false);
+      console.log('🔍 Récupération des campagnes...');
+      const data = await campaignApi.getAll();
+      console.log('📋 Campagnes récupérées:', data);
+      setCampaigns(Array.isArray(data) ? data : []);
+      setRetryCount(0); // Reset retry count on success
+      try { sessionStorage.setItem('campaigns', JSON.stringify(Array.isArray(data) ? data : [])); } catch {}
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération des campagnes:', error);
+      if ((error as any)?.name !== 'AbortError') {
+        setHasError(true);
+        setCampaigns([]);
+        const errorMessage = error instanceof Error ? error.message : 'Erreur de connexion';
+        toast.show(`Erreur: ${errorMessage}`, 'error');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="w-full p-3 sm:p-4 space-y-4 min-h-full">
       <div className={`mb-6 transition-all duration-700 ${
@@ -174,7 +179,43 @@ const HomePage: React.FC = memo(() => {
         </div>
       )}
 
-      {!isLoading && campaigns.map((campaign, index) => (
+      {hasError && !isLoading && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+          <div className="text-red-600 mb-4">
+            <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+            <h3 className="text-lg font-semibold mb-2">Erreur de chargement</h3>
+            <p className="text-red-700 mb-4">
+              Impossible de charger les campagnes. Vérifiez votre connexion internet.
+            </p>
+            <div className="flex justify-center space-x-3">
+              <button
+                onClick={handleRetry}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Réessayer
+              </button>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Recharger la page
+              </button>
+            </div>
+            {retryCount > 0 && (
+              <p className="text-sm text-red-600 mt-2">
+                Tentative {retryCount} de 3
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {!isLoading && campaigns.map((campaign, index) => {
+        if (!campaign.id) return null; // Skip campaigns without ID
+        
+        return (
         <div
           key={campaign.id}
           className={`bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ${
@@ -193,7 +234,7 @@ const HomePage: React.FC = memo(() => {
             />
             <div className="absolute top-4 right-4 flex gap-2">
               <div className="relative">
-                <button className="p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors" aria-label="Options" onClick={(e) => { e.stopPropagation(); toggleMenu(campaign.id); }}>
+                <button className="p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors" aria-label="Options" onClick={(e) => { e.stopPropagation(); toggleMenu(campaign.id!); }}>
                   <MoreVert className="w-5 h-5 text-gray-600" />
                 </button>
                 {openMenuId === campaign.id && (
@@ -256,11 +297,11 @@ const HomePage: React.FC = memo(() => {
 
             <div className="flex items-center justify-between pt-4 border-t border-gray-100">
               <div className="flex items-center space-x-6">
-                <button className="flex items-center space-x-2 text-gray-600 hover:text-red-500 transition-colors" onClick={() => handleLike(campaign.id)}>
+                <button className="flex items-center space-x-2 text-gray-600 hover:text-red-500 transition-colors" onClick={() => handleLike(campaign.id!)}>
                   <Favorite className="w-5 h-5" />
-                  <span className="text-sm font-medium">{likeCounts[campaign.id] || 0}</span>
+                  <span className="text-sm font-medium">{likeCounts[campaign.id!] || 0}</span>
                 </button>
-                <button className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors" onClick={() => toggleComments(campaign.id)}>
+                <button className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors" onClick={() => toggleComments(campaign.id!)}>
                   <Comment className="w-5 h-5" />
                   <span className="text-sm font-medium">Commenter</span>
                 </button>
@@ -271,24 +312,25 @@ const HomePage: React.FC = memo(() => {
               </div>
             </div>
 
-            {openComments[campaign.id] && (
+            {openComments[campaign.id!] && (
               <div className="mt-3 p-3 border border-gray-200 rounded-lg bg-gray-50">
                 <textarea
                   className="w-full p-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   rows={3}
                   placeholder="Votre commentaire..."
-                  value={commentTexts[campaign.id] || ''}
-                  onChange={(e) => setCommentTexts((prev) => ({ ...prev, [campaign.id]: e.target.value }))}
+                  value={commentTexts[campaign.id!] || ''}
+                  onChange={(e) => setCommentTexts((prev) => ({ ...prev, [campaign.id!]: e.target.value }))}
                 />
                 <div className="mt-2 flex justify-end gap-2">
-                  <button className="px-3 py-1.5 text-sm rounded bg-gray-200 hover:bg-gray-300" onClick={() => toggleComments(campaign.id)}>Annuler</button>
-                  <button className="px-3 py-1.5 text-sm rounded bg-blue-600 text-white hover:bg-blue-700" onClick={() => submitComment(campaign.id)} disabled={!commentTexts[campaign.id]?.trim()}>Envoyer</button>
+                  <button className="px-3 py-1.5 text-sm rounded bg-gray-200 hover:bg-gray-300" onClick={() => toggleComments(campaign.id!)}>Annuler</button>
+                  <button className="px-3 py-1.5 text-sm rounded bg-blue-600 text-white hover:bg-blue-700" onClick={() => submitComment(campaign.id!)} disabled={!commentTexts[campaign.id!]?.trim()}>Envoyer</button>
                 </div>
               </div>
             )}
           </div>
         </div>
-      ))}
+        );
+      })}
 
       <div className={`bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-6 text-white text-center ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
