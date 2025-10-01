@@ -3,6 +3,7 @@ import TopBar from '../components/TopBar';
 import BottomBar from '../components/BottomBar';
 import { useNavigation } from '../contexts/NavigationContext';
 import { useAuth } from '../hooks/useAuth';
+import { useServerRestart } from '../hooks/useServerRestart';
 
 // Lazy loading des pages pour optimiser les performances
 const HomePage = lazy(() => import('../pages/HomePage'));
@@ -22,14 +23,15 @@ const CommunityChatPage = lazy(() => import('../pages/CommunityChatPage'));
 const MainLayout: React.FC = memo(() => {
   const { activeTab, navigateTo, navigateToSignIn } = useNavigation();
   const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const { isChecking } = useServerRestart();
 
   // Rediriger vers la page de connexion si l'utilisateur n'est pas authentifié
   useEffect(() => {
-    if (!isLoading && !isAuthenticated && activeTab !== 'signin' && activeTab !== 'signup') {
+    if (!isLoading && !isChecking && !isAuthenticated && activeTab !== 'signin' && activeTab !== 'signup') {
       console.log('Utilisateur non authentifié, redirection vers la page de connexion');
       navigateToSignIn();
     }
-  }, [isAuthenticated, isLoading, activeTab, navigateToSignIn]);
+  }, [isAuthenticated, isLoading, isChecking, activeTab, navigateToSignIn]);
 
   const handleLogout = () => {
     try {
@@ -38,6 +40,18 @@ const MainLayout: React.FC = memo(() => {
       navigateToSignIn();
     }
   };
+
+  // Afficher le spinner pendant la vérification du serveur
+  if (isChecking) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Vérification de la connexion au serveur...</p>
+        </div>
+      </div>
+    );
+  }
 
   const renderPage = () => {
     console.log('Rendu de la page:', activeTab);
