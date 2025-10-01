@@ -14,7 +14,14 @@ interface Message {
 
 const AICoachChatPage: React.FC = () => {
   const { navigateTo } = useNavigation();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: 'welcome',
+      text: 'Bonjour ! Je suis votre coach nutritionnel. Posez-moi vos questions sur l\'alimentation pendant la grossesse. Je répondrai de manière courte et précise.',
+      isUser: false,
+      timestamp: new Date()
+    }
+  ]);
   const [newMessage, setNewMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -25,14 +32,14 @@ const AICoachChatPage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const suggestedQuestions = [
-    "Quels aliments éviter pendant la grossesse?",
-    "Comment gérer les nausées matinales?",
-    "Quels suppléments prendre pendant la grossesse?",
-    "Comment bien s'alimenter au 1er trimestre?",
-    "Quels sont les besoins en fer pendant la grossesse?",
-    "Comment prévenir le diabète gestationnel?",
-    "Quels aliments pour le développement du cerveau du bébé?",
-    "Comment gérer les envies de grossesse de manière saine?"
+    "Aliments à éviter?",
+    "Gérer les nausées?",
+    "Suppléments essentiels?",
+    "Alimentation 1er trimestre?",
+    "Besoins en fer?",
+    "Prévenir diabète gestationnel?",
+    "Aliments pour le cerveau bébé?",
+    "Gérer les envies?"
   ];
 
   const scrollToBottom = () => {
@@ -131,6 +138,52 @@ const AICoachChatPage: React.FC = () => {
   };
 
 
+  // Fonction pour générer un prompt adapté au type de question
+  const generatePrompt = (question: string, isImage: boolean = false) => {
+    const basePrompt = `Coach nutritionnel pour femmes enceintes. Réponse COURTE et PRÉCISE.
+
+Question: "${question}"
+
+RÈGLES:
+- Maximum 2 phrases
+- Réponse directe
+- Focus essentiel
+- Nutrition/grossesse uniquement`;
+
+    if (isImage) {
+      return `${basePrompt}
+
+Analyse l'image et donne un conseil nutritionnel court.`;
+    }
+
+    // Adapter le prompt selon le type de question
+    if (question.toLowerCase().includes('éviter') || question.toLowerCase().includes('interdit')) {
+      return `${basePrompt}
+
+Liste les aliments à éviter pendant la grossesse.`;
+    } else if (question.toLowerCase().includes('nausée')) {
+      return `${basePrompt}
+
+Conseils pratiques pour gérer les nausées.`;
+    } else if (question.toLowerCase().includes('supplément')) {
+      return `${basePrompt}
+
+Suppléments essentiels pendant la grossesse.`;
+    } else if (question.toLowerCase().includes('fer')) {
+      return `${basePrompt}
+
+Besoins en fer et sources alimentaires.`;
+    } else if (question.toLowerCase().includes('diabète')) {
+      return `${basePrompt}
+
+Prévention du diabète gestationnel.`;
+    } else {
+      return `${basePrompt}
+
+Conseil nutritionnel court et pratique.`;
+    }
+  };
+
   const handleSendMessage = async () => {
     if (!newMessage.trim() && !selectedImage) return;
 
@@ -163,51 +216,14 @@ const AICoachChatPage: React.FC = () => {
         console.log('📸 Génération avec image...');
         const base64Image = selectedImage.split(',')[1]; // Enlever le préfixe data:image/jpeg;base64,
         aiResponse = await geminiService.generateContentWithImage(
-          `Tu es un coach nutritionnel spécialisé pour les femmes enceintes. Tu es bienveillant, professionnel et rassurant. 
-          
-          Analyse cette image et réponds à cette question: "${newMessage}"
-          
-          Contexte: Tu accompagnes des femmes enceintes dans leur parcours nutritionnel. Tu peux donner des conseils sur:
-          - L'alimentation équilibrée pendant la grossesse
-          - Les suppléments recommandés (acide folique, fer, etc.)
-          - La gestion des nausées, vomissements, brûlures d'estomac
-          - Les aliments à éviter ou à privilégier
-          - La prise de poids recommandée
-          - Le diabète gestationnel et sa prévention
-          - Les besoins nutritionnels par trimestre
-          
-          IMPORTANT: 
-          - Reste dans le domaine de la nutrition et du bien-être
-          - Recommande toujours de consulter un professionnel de santé pour les questions médicales
-          - Sois rassurant et positif
-          - Adapte tes conseils selon le trimestre si mentionné
-          - Si la question n'est pas liée à la grossesse/nutrition, redirige poliment vers ces sujets
-          - Analyse l'image si elle est pertinente pour la question nutritionnelle`,
+          generatePrompt(newMessage, true),
           base64Image
         );
       } else {
         // Utiliser la méthode standard sans image
         console.log('💬 Génération de texte simple...');
         aiResponse = await geminiService.generateContent(
-          `Tu es un coach nutritionnel spécialisé pour les femmes enceintes. Tu es bienveillant, professionnel et rassurant. 
-          
-          Réponds à cette question: "${newMessage}"
-          
-          Contexte: Tu accompagnes des femmes enceintes dans leur parcours nutritionnel. Tu peux donner des conseils sur:
-          - L'alimentation équilibrée pendant la grossesse
-          - Les suppléments recommandés (acide folique, fer, etc.)
-          - La gestion des nausées, vomissements, brûlures d'estomac
-          - Les aliments à éviter ou à privilégier
-          - La prise de poids recommandée
-          - Le diabète gestationnel et sa prévention
-          - Les besoins nutritionnels par trimestre
-          
-          IMPORTANT: 
-          - Reste dans le domaine de la nutrition et du bien-être
-          - Recommande toujours de consulter un professionnel de santé pour les questions médicales
-          - Sois rassurant et positif
-          - Adapte tes conseils selon le trimestre si mentionné
-          - Si la question n'est pas liée à la grossesse/nutrition, redirige poliment vers ces sujets`
+          generatePrompt(newMessage, false)
         );
       }
       
@@ -292,8 +308,8 @@ const AICoachChatPage: React.FC = () => {
             </div>
           </div>
           <div>
-            <h1 className="font-semibold text-lg">Coach AI Médical</h1>
-            <p className="text-xs text-blue-100">En ligne</p>
+            <h1 className="font-semibold text-lg">Coach IA Grossesse</h1>
+            <p className="text-xs text-blue-100">Votre conseiller complet</p>
           </div>
         </div>
         <div className="relative menu-container">
