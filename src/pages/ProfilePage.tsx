@@ -1,5 +1,5 @@
 import React, { useState, memo, useEffect } from 'react';
-import { Edit, Person, Email, Phone, LocationOn, CameraAlt, Save, Close, Verified, TrendingUp, Message, Campaign, PictureAsPdf, Work, School, Star, Language, AccessTime, AttachMoney, MedicalServices, Award } from '@mui/icons-material';
+import { Edit, Person, Email, Phone, LocationOn, CameraAlt, Save, Close, Verified, TrendingUp, Message, Campaign, PictureAsPdf, Work, School, Star, Language, AccessTime, AttachMoney, MedicalServices, EmojiEvents } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
 import { pregnancyApi, type PregnancyRecord } from '../services/api';
 import { useToast } from '../components/ToastProvider';
@@ -445,7 +445,7 @@ const ProfilePage: React.FC = memo(() => {
             {user.certifications && user.certifications.length > 0 && (
               <div className="mb-4">
                 <h4 className="text-sm font-medium text-gray-600 mb-2 flex items-center">
-                  <Award className="w-4 h-4 mr-1" />
+                  <EmojiEvents className="w-4 h-4 mr-1" />
                   Certifications
                 </h4>
                 <div className="flex flex-wrap gap-2">
