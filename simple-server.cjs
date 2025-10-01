@@ -716,6 +716,89 @@ const server = http.createServer((req, res) => {
       res.end(JSON.stringify(db.notifications || []));
     }
   }
+  // Route pour les centres de santé
+  else if (pathname.startsWith('/healthCenters')) {
+    if (req.method === 'GET') {
+      let centers = db.healthCenters || [];
+      
+      // Filtrage par région
+      if (query.region) {
+        centers = centers.filter(c => c.region === query.region);
+      }
+      
+      // Filtrage par type
+      if (query.type) {
+        centers = centers.filter(c => c.type === query.type);
+      }
+      
+      // Filtrage par statut actif
+      if (query.isActive === 'true') {
+        centers = centers.filter(c => c.isActive === true);
+      }
+      
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(centers));
+    }
+    else if (req.method === 'POST') {
+      let body = '';
+      req.on('data', chunk => body += chunk);
+      req.on('end', () => {
+        try {
+          const newCenter = JSON.parse(body);
+          if (!db.healthCenters) db.healthCenters = [];
+          const nextId = db.healthCenters.length ? Math.max(...db.healthCenters.map(c => c.id || 0)) + 1 : 1;
+          newCenter.id = nextId;
+          db.healthCenters.push(newCenter);
+          try { fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8'); } catch {}
+          res.writeHead(201, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify(newCenter));
+        } catch (e) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Invalid JSON' }));
+        }
+      });
+    }
+    else if (req.method === 'PUT') {
+      const id = parseInt(pathname.split('/')[2]);
+      let body = '';
+      req.on('data', chunk => body += chunk);
+      req.on('end', () => {
+        try {
+          const updatedData = JSON.parse(body);
+          const list = db.healthCenters || [];
+          const idx = list.findIndex(c => c.id === id);
+          if (idx === -1) {
+            res.writeHead(404, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Centre de santé non trouvé' }));
+            return;
+          }
+          list[idx] = { ...list[idx], ...updatedData };
+          db.healthCenters = list;
+          try { fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8'); } catch {}
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify(list[idx]));
+        } catch (e) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Invalid JSON' }));
+        }
+      });
+    }
+    else if (req.method === 'DELETE') {
+      const id = parseInt(pathname.split('/')[2]);
+      const list = db.healthCenters || [];
+      const idx = list.findIndex(c => c.id === id);
+      if (idx === -1) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Centre de santé non trouvé' }));
+        return;
+      }
+      const removed = list.splice(idx, 1)[0];
+      db.healthCenters = list;
+      try { fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8'); } catch {}
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(removed));
+    }
+  }
   // Route de test
   else if (pathname === '/health') {
     res.writeHead(200, { 'Content-Type': 'application/json' });

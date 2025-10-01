@@ -392,6 +392,30 @@ export interface EmergencyContact {
   isPrimary: boolean;
 }
 
+export interface HealthCenter {
+  id: number;
+  name: string;
+  type: 'hospital' | 'clinic' | 'health_center' | 'maternity';
+  address: string;
+  city: string;
+  region: string;
+  phone: string;
+  email?: string;
+  website?: string;
+  description?: string;
+  services: string[];
+  specialties: string[];
+  capacity: number;
+  isActive: boolean;
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
+  images?: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 // API pour les relations médecin-patient
 export const doctorPatientApi = {
   getByDoctorId: (doctorId: number): Promise<DoctorPatient[]> => 
@@ -527,4 +551,37 @@ export const assignRandomDoctor = async (patientId?: number): Promise<DoctorPati
     console.error('Erreur lors de l\'assignation du médecin:', error);
     return null;
   }
+};
+
+// API pour les centres de santé
+export const healthCenterApi = {
+  getAll: (): Promise<HealthCenter[]> => 
+    request<HealthCenter[]>('/healthCenters'),
+  getById: (id: number): Promise<HealthCenter> => 
+    request<HealthCenter>(`/healthCenters/${id}`),
+  create: (data: Omit<HealthCenter, 'id' | 'createdAt' | 'updatedAt'>): Promise<HealthCenter> => 
+    request<HealthCenter>('/healthCenters', {
+      method: 'POST',
+      body: JSON.stringify({
+        ...data,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      })
+    }),
+  update: (id: number, data: Partial<Omit<HealthCenter, 'id' | 'createdAt'>>): Promise<HealthCenter> => 
+    request<HealthCenter>(`/healthCenters/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        ...data,
+        updatedAt: new Date().toISOString()
+      })
+    }),
+  delete: (id: number): Promise<void> => 
+    request<void>(`/healthCenters/${id}`, { method: 'DELETE' }),
+  getByRegion: (region: string): Promise<HealthCenter[]> => 
+    request<HealthCenter[]>(`/healthCenters?region=${region}`),
+  getByType: (type: string): Promise<HealthCenter[]> => 
+    request<HealthCenter[]>(`/healthCenters?type=${type}`),
+  getActive: (): Promise<HealthCenter[]> => 
+    request<HealthCenter[]>('/healthCenters?isActive=true')
 };
