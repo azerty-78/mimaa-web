@@ -135,27 +135,58 @@ const AICoachChatPage: React.FC = () => {
 
     try {
       // Utiliser l'API Gemini pour générer une réponse
-      const aiResponse = await geminiService.generateContent(
-        `Tu es un coach nutritionnel spécialisé pour les femmes enceintes. Tu es bienveillant, professionnel et rassurant. 
-        
-        Réponds à cette question: "${newMessage}"
-        
-        Contexte: Tu accompagnes des femmes enceintes dans leur parcours nutritionnel. Tu peux donner des conseils sur:
-        - L'alimentation équilibrée pendant la grossesse
-        - Les suppléments recommandés (acide folique, fer, etc.)
-        - La gestion des nausées, vomissements, brûlures d'estomac
-        - Les aliments à éviter ou à privilégier
-        - La prise de poids recommandée
-        - Le diabète gestationnel et sa prévention
-        - Les besoins nutritionnels par trimestre
-        
-        IMPORTANT: 
-        - Reste dans le domaine de la nutrition et du bien-être
-        - Recommande toujours de consulter un professionnel de santé pour les questions médicales
-        - Sois rassurant et positif
-        - Adapte tes conseils selon le trimestre si mentionné
-        - Si la question n'est pas liée à la grossesse/nutrition, redirige poliment vers ces sujets`
-      );
+      let aiResponse: string;
+      
+      if (selectedImage) {
+        // Si une image est fournie, utiliser la méthode avec image
+        const base64Image = selectedImage.split(',')[1]; // Enlever le préfixe data:image/jpeg;base64,
+        aiResponse = await geminiService.generateContentWithImage(
+          `Tu es un coach nutritionnel spécialisé pour les femmes enceintes. Tu es bienveillant, professionnel et rassurant. 
+          
+          Analyse cette image et réponds à cette question: "${newMessage}"
+          
+          Contexte: Tu accompagnes des femmes enceintes dans leur parcours nutritionnel. Tu peux donner des conseils sur:
+          - L'alimentation équilibrée pendant la grossesse
+          - Les suppléments recommandés (acide folique, fer, etc.)
+          - La gestion des nausées, vomissements, brûlures d'estomac
+          - Les aliments à éviter ou à privilégier
+          - La prise de poids recommandée
+          - Le diabète gestationnel et sa prévention
+          - Les besoins nutritionnels par trimestre
+          
+          IMPORTANT: 
+          - Reste dans le domaine de la nutrition et du bien-être
+          - Recommande toujours de consulter un professionnel de santé pour les questions médicales
+          - Sois rassurant et positif
+          - Adapte tes conseils selon le trimestre si mentionné
+          - Si la question n'est pas liée à la grossesse/nutrition, redirige poliment vers ces sujets
+          - Analyse l'image si elle est pertinente pour la question nutritionnelle`,
+          base64Image
+        );
+      } else {
+        // Utiliser la méthode standard sans image
+        aiResponse = await geminiService.generateContent(
+          `Tu es un coach nutritionnel spécialisé pour les femmes enceintes. Tu es bienveillant, professionnel et rassurant. 
+          
+          Réponds à cette question: "${newMessage}"
+          
+          Contexte: Tu accompagnes des femmes enceintes dans leur parcours nutritionnel. Tu peux donner des conseils sur:
+          - L'alimentation équilibrée pendant la grossesse
+          - Les suppléments recommandés (acide folique, fer, etc.)
+          - La gestion des nausées, vomissements, brûlures d'estomac
+          - Les aliments à éviter ou à privilégier
+          - La prise de poids recommandée
+          - Le diabète gestationnel et sa prévention
+          - Les besoins nutritionnels par trimestre
+          
+          IMPORTANT: 
+          - Reste dans le domaine de la nutrition et du bien-être
+          - Recommande toujours de consulter un professionnel de santé pour les questions médicales
+          - Sois rassurant et positif
+          - Adapte tes conseils selon le trimestre si mentionné
+          - Si la question n'est pas liée à la grossesse/nutrition, redirige poliment vers ces sujets`
+        );
+      }
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),

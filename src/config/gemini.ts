@@ -1,7 +1,7 @@
 // Configuration pour l'API Gemini
 export const GEMINI_CONFIG = {
-  apiKey: 'aizasybysyc7t7a6syunih-upwuw_44s79lfe4k',
-  modelName: 'gemini-1.5-flash',
+  apiKey: 'AIzaSyAGyYDydVRJ5tkAkEoIHLVp6HpES3Of4cw',
+  modelName: 'gemini-2.5-flash',
   generationConfig: {
     temperature: 0.7,
     maxOutputTokens: 1500,
@@ -10,5 +10,5 @@ export const GEMINI_CONFIG = {
   }
 };
 
-// URL de base pour l'API Gemini
-export const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+// URL de base pour l'API Gemini (pour compatibilité avec l'ancien code)
+export const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';

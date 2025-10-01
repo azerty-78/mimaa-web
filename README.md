@@ -4,102 +4,138 @@ Une application web responsive conçue pour les femmes enceintes, les médecins 
 
 ## 🚀 Fonctionnalités Opérationnelles
 
-### 🔐 Authentification
+### 🔐 Authentification & Sécurité
 - **Page de connexion** avec email et mot de passe
-- **Page d'inscription** avec formulaire complet
+- **Page d'inscription** avec formulaire complet et validation
 - **Connexion Google** (interface prête)
-- **Gestion des sessions** avec localStorage
-- **Redirection automatique** vers la page de connexion si non authentifié
-- **Déconnexion sécurisée**
+- **Gestion des sessions** avec localStorage sécurisé
+- **Redirection automatique** vers la page d'accueil après connexion
+- **Déconnexion sécurisée** avec nettoyage des données
+- **Protection des routes** - accès restreint aux utilisateurs connectés
 
-### 👤 Gestion des Profils
-- **Types de profils** : Femme enceinte, Médecin
+### 👤 Gestion des Profils & Utilisateurs
+- **Types de profils** : Femme enceinte, Médecin, Administrateur
 - **Photo de profil** optionnelle (conversion base64, validation taille/type)
-- **Informations personnelles** : nom, email, type de profil
+- **Informations personnelles** complètes
 - **Affichage dynamique** dans le TopBar et modales
+- **Assignation automatique** de médecins aux femmes enceintes
+- **Gestion des relations** médecin-patient
 
-### 🎨 Interface Utilisateur
+### 🤖 Intelligence Artificielle & Chatbot
+- **Coach IA nutritionnel** spécialisé pour les femmes enceintes
+- **Modèle Gemini 2.5 Flash** de Google
+- **Analyse d'images** pour conseils nutritionnels
+- **Chat intelligent** avec historique de conversation
+- **Conseils personnalisés** selon le trimestre de grossesse
+- **Support multilingue** (français)
+- **Gestion d'erreurs** robuste avec retry automatique
+
+### 🏥 Gestion Médicale
+- **Dossiers de grossesse** complets
+- **Suivi des rendez-vous** médicaux
+- **Paramètres médicaux** (tension, glycémie, etc.)
+- **Symptômes et médicaments** tracking
+- **Nutrition personnalisée** avec objectifs
+- **Échographies** et examens
+- **Notes médicales** personnalisées
+
+### 🎨 Interface Utilisateur & Expérience
 - **Design responsive** optimisé pour mobile
 - **TopBar fixe** avec profil utilisateur et notifications
 - **BottomBar fixe** avec navigation principale
 - **Animations fluides** entre les pages
 - **Thème moderne** avec Tailwind CSS
+- **Mode sombre** (en développement)
+- **Indicateur de statut réseau** en temps réel
+- **Gestion d'erreurs** avec messages utilisateur
 
-### 📱 Pages Disponibles
-- **Page d'accueil** (Home)
-- **Tableau de bord** (Dashboard)
-- **Communauté** (Community)
-- **Profil utilisateur** (Profile)
-- **Paramètres** (Settings)
-- **Connexion** (SignIn)
-- **Inscription** (SignUp)
+### 📱 Pages & Navigation
+- **Page d'accueil** avec campagnes de santé
+- **Tableaux de bord** spécialisés par profil
+- **Chat IA Coach** pour conseils nutritionnels
+- **Chat médecin** pour consultations
+- **Communauté** pour échanges entre utilisateurs
+- **Profil utilisateur** avec édition complète
+- **Paramètres** de l'application
+- **Connexion/Inscription** sécurisées
 
-### 🗄️ Base de Données
+### 🗄️ Base de Données & API
 - **JSON Server** pour l'API de développement
 - **Utilisateurs** avec gestion complète des profils
-- **Campagnes** de sensibilisation
+- **Campagnes** de sensibilisation santé
+- **Dossiers de grossesse** détaillés
+- **Rendez-vous** médicaux
 - **Communautés** d'utilisateurs
 - **Notifications** système
+- **Cache intelligent** pour les performances
 
-## 🛠️ Installation
+## 🛠️ Installation Rapide
 
 ### Prérequis
-- **Node.js** (version 18 ou supérieure)
-- **npm** ou **yarn**
-- **Git**
+- **Node.js** 18+ (télécharger depuis [nodejs.org](https://nodejs.org/))
+- **npm** 8+ (inclus avec Node.js)
+- **Git** (télécharger depuis [git-scm.com](https://git-scm.com/))
 
-### Étapes d'installation
+### Installation en 3 étapes
 
-1. **Cloner le repository**
-   ```bash
-   git clone <url-du-repository>
-   cd mimaa-web
-   ```
+```bash
+# 1. Cloner le projet
+git clone https://github.com/votre-username/mimaa-web.git
+cd mimaa-web
 
-2. **Installer les dépendances**
-   ```bash
-   npm install
-   ```
+# 2. Installer les dépendances
+npm install
 
-3. **Démarrer la base de données JSON Server**
-   ```bash
-   npm run db
-   ```
-   *Cette commande démarre le serveur de base de données sur le port 3001*
-
-4. **Démarrer l'application de développement**
-   ```bash
-   npm run dev
-   ```
-   *Cette commande démarre l'application sur le port 5173*
-
-5. **Démarrer les deux serveurs simultanément** (optionnel)
-   ```bash
-   npm run dev:full
-   ```
-   *Cette commande démarre à la fois l'application et la base de données*
+# 3. Démarrer l'application
+npm run dev:full
+```
 
 ### Accès à l'application
 - **Application** : http://localhost:5173
 - **API Base de données** : http://localhost:3001
-- **Documentation API** : http://localhost:3001 (interface JSON Server)
+- **Documentation API** : http://localhost:3001
+
+> 📖 **Guide d'installation détaillé** : Voir [INSTALLATION-GUIDE.md](./INSTALLATION-GUIDE.md) pour une installation complète avec résolution des problèmes.
 
 ## 🔧 Configuration
 
 ### Variables d'environnement
-Aucune configuration d'environnement n'est requise pour le développement local.
+```bash
+# Créer un fichier .env (optionnel)
+VITE_API_URL=http://localhost:3001
+VITE_APP_NAME=MIMAA Web
+GEMINI_API_KEY=AIzaSyAGyYDydVRJ5tkAkEoIHLVp6HpES3Of4cw
+```
 
 ### Configuration Vite
 Le fichier `vite.config.ts` est configuré pour :
-- Support des hôtes ngrok pour le partage
-- Hot Module Replacement (HMR)
-- Build optimisé pour la production
+- **Support ngrok** pour le partage local
+- **Hot Module Replacement** (HMR) pour le développement
+- **Build optimisé** pour la production
+- **Proxy API** pour éviter les problèmes CORS
+- **Support multi-plateforme** (Windows, macOS, Linux)
+
+### Configuration Gemini AI
+```typescript
+// src/config/gemini.ts
+export const GEMINI_CONFIG = {
+  apiKey: 'AIzaSyAGyYDydVRJ5tkAkEoIHLVp6HpES3Of4cw',
+  modelName: 'gemini-2.5-flash',
+  generationConfig: {
+    temperature: 0.7,
+    maxOutputTokens: 1500,
+    topP: 0.8,
+    topK: 40
+  }
+};
+```
 
 ### Configuration Tailwind
 Le fichier `tailwind.config.js` inclut :
-- Configuration responsive
-- Classes personnalisées
-- Support des animations
+- **Configuration responsive** mobile-first
+- **Classes personnalisées** pour l'application
+- **Support des animations** fluides
+- **Thème cohérent** avec Material Design
 
 ## 📁 Structure du Projet
 
