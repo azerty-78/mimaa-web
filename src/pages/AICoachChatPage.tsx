@@ -17,7 +17,7 @@ const AICoachChatPage: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
-      text: 'Bonjour ! Je suis votre coach nutritionnel. Posez-moi vos questions sur l\'alimentation pendant la grossesse. Je répondrai de manière courte et précise.',
+      text: 'Bonjour ! Je suis votre coach IA spécialisé dans la grossesse. Je peux vous conseiller sur la nutrition, les symptômes, les examens, le bien-être et tous vos questionnements. Posez-moi vos questions !',
       isUser: false,
       timestamp: new Date()
     }
@@ -32,14 +32,14 @@ const AICoachChatPage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const suggestedQuestions = [
+    "Symptômes normaux?",
     "Aliments à éviter?",
     "Gérer les nausées?",
-    "Suppléments essentiels?",
-    "Alimentation 1er trimestre?",
-    "Besoins en fer?",
-    "Prévenir diabète gestationnel?",
-    "Aliments pour le cerveau bébé?",
-    "Gérer les envies?"
+    "Examens importants?",
+    "Exercices recommandés?",
+    "Préparer l'accouchement?",
+    "Troubles du sommeil?",
+    "Anxiété et stress?"
   ];
 
   const scrollToBottom = () => {
@@ -140,47 +140,71 @@ const AICoachChatPage: React.FC = () => {
 
   // Fonction pour générer un prompt adapté au type de question
   const generatePrompt = (question: string, isImage: boolean = false) => {
-    const basePrompt = `Coach nutritionnel pour femmes enceintes. Réponse COURTE et PRÉCISE.
+    const basePrompt = `Coach IA spécialisé dans la grossesse. Réponse COURTE et PRÉCISE.
 
 Question: "${question}"
 
 RÈGLES:
 - Maximum 2 phrases
-- Réponse directe
+- Réponse directe et pratique
 - Focus essentiel
-- Nutrition/grossesse uniquement`;
+- Tous aspects de la grossesse`;
 
     if (isImage) {
       return `${basePrompt}
 
-Analyse l'image et donne un conseil nutritionnel court.`;
+Analyse l'image et donne un conseil court sur la grossesse.`;
     }
 
     // Adapter le prompt selon le type de question
-    if (question.toLowerCase().includes('éviter') || question.toLowerCase().includes('interdit')) {
+    if (question.toLowerCase().includes('symptôme') || question.toLowerCase().includes('normal')) {
       return `${basePrompt}
 
-Liste les aliments à éviter pendant la grossesse.`;
+Symptômes normaux pendant la grossesse.`;
+    } else if (question.toLowerCase().includes('éviter') || question.toLowerCase().includes('interdit')) {
+      return `${basePrompt}
+
+Aliments à éviter pendant la grossesse.`;
     } else if (question.toLowerCase().includes('nausée')) {
       return `${basePrompt}
 
-Conseils pratiques pour gérer les nausées.`;
-    } else if (question.toLowerCase().includes('supplément')) {
+Conseils pour gérer les nausées.`;
+    } else if (question.toLowerCase().includes('examen') || question.toLowerCase().includes('test')) {
       return `${basePrompt}
 
-Suppléments essentiels pendant la grossesse.`;
-    } else if (question.toLowerCase().includes('fer')) {
+Examens importants pendant la grossesse.`;
+    } else if (question.toLowerCase().includes('exercice') || question.toLowerCase().includes('sport')) {
       return `${basePrompt}
 
-Besoins en fer et sources alimentaires.`;
-    } else if (question.toLowerCase().includes('diabète')) {
+Exercices recommandés pendant la grossesse.`;
+    } else if (question.toLowerCase().includes('accouchement') || question.toLowerCase().includes('naissance')) {
       return `${basePrompt}
 
-Prévention du diabète gestationnel.`;
+Préparation à l'accouchement.`;
+    } else if (question.toLowerCase().includes('sommeil') || question.toLowerCase().includes('dormir')) {
+      return `${basePrompt}
+
+Conseils pour mieux dormir pendant la grossesse.`;
+    } else if (question.toLowerCase().includes('anxiété') || question.toLowerCase().includes('stress') || question.toLowerCase().includes('angoisse')) {
+      return `${basePrompt}
+
+Gestion du stress et de l'anxiété pendant la grossesse.`;
+    } else if (question.toLowerCase().includes('douleur') || question.toLowerCase().includes('mal')) {
+      return `${basePrompt}
+
+Gestion des douleurs pendant la grossesse.`;
+    } else if (question.toLowerCase().includes('sexe') || question.toLowerCase().includes('intimité')) {
+      return `${basePrompt}
+
+Vie intime pendant la grossesse.`;
+    } else if (question.toLowerCase().includes('voyage') || question.toLowerCase().includes('déplacement')) {
+      return `${basePrompt}
+
+Voyages pendant la grossesse.`;
     } else {
       return `${basePrompt}
 
-Conseil nutritionnel court et pratique.`;
+Conseil court et pratique sur la grossesse.`;
     }
   };
 
