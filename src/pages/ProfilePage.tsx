@@ -73,10 +73,10 @@ const ProfilePage: React.FC = memo(() => {
         [name]: value === '' ? 0 : Number(value)
       }));
     } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
     }
   };
 
