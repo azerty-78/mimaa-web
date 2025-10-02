@@ -52,12 +52,22 @@ export class GeminiService {
     } catch (error) {
       console.error('❌ Erreur lors de la génération de contenu:', error);
       
-      // Retourner une réponse de fallback en cas d'erreur
-      if (error instanceof Error && error.message.includes('Timeout')) {
-        return "Désolé, je rencontre des difficultés techniques. Veuillez réessayer dans quelques instants.";
+      // Gestion spécifique des erreurs Gemini
+      if (error instanceof Error) {
+        if (error.message.includes('Timeout')) {
+          return "Désolé, je rencontre des difficultés techniques. Veuillez réessayer dans quelques instants.";
+        }
+        
+        if (error.message.includes('503') || error.message.includes('overloaded')) {
+          return "Le service est temporairement surchargé. Veuillez patienter quelques minutes et réessayer. En attendant, vous pouvez consulter vos informations de grossesse dans le dashboard.";
+        }
+        
+        if (error.message.includes('API key') || error.message.includes('authentication')) {
+          return "Problème de configuration technique. Veuillez contacter le support.";
+        }
       }
       
-      return "Je suis désolé, je ne peux pas répondre à votre question pour le moment. Veuillez réessayer plus tard.";
+      return "Je suis désolé, je ne peux pas répondre à votre question pour le moment. Veuillez réessayer plus tard ou consulter votre médecin pour des questions urgentes.";
     }
   }
 
@@ -91,12 +101,22 @@ export class GeminiService {
     } catch (error) {
       console.error('❌ Erreur lors du chat avec l\'IA:', error);
       
-      // Retourner une réponse de fallback en cas d'erreur
-      if (error instanceof Error && error.message.includes('Timeout')) {
-        return "Désolé, je rencontre des difficultés techniques. Veuillez réessayer dans quelques instants.";
+      // Gestion spécifique des erreurs Gemini
+      if (error instanceof Error) {
+        if (error.message.includes('Timeout')) {
+          return "Désolé, je rencontre des difficultés techniques. Veuillez réessayer dans quelques instants.";
+        }
+        
+        if (error.message.includes('503') || error.message.includes('overloaded')) {
+          return "Le service est temporairement surchargé. Veuillez patienter quelques minutes et réessayer. En attendant, vous pouvez consulter vos informations de grossesse dans le dashboard.";
+        }
+        
+        if (error.message.includes('API key') || error.message.includes('authentication')) {
+          return "Problème de configuration technique. Veuillez contacter le support.";
+        }
       }
       
-      return "Je suis désolé, je ne peux pas répondre à votre question pour le moment. Veuillez réessayer plus tard.";
+      return "Je suis désolé, je ne peux pas répondre à votre question pour le moment. Veuillez réessayer plus tard ou consulter votre médecin pour des questions urgentes.";
     }
   }
 
