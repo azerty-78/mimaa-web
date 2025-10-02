@@ -2,6 +2,9 @@ import React, { memo, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { appointmentApi, pregnancyApi, type Appointment, type PregnancyRecord } from '../services/api';
 import { useToast } from '../components/ToastProvider';
+import SymptomTracker from '../components/SymptomTracker';
+import KickCounter from '../components/KickCounter';
+import WeightTracker from '../components/WeightTracker';
 
 const Card: React.FC<{ title: string; subtitle?: string; className?: string; children?: React.ReactNode }> = ({ title, subtitle, className, children }) => (
   <div className={`rounded-2xl p-4 sm:p-5 shadow border border-black/5 ${className || ''}`}>
@@ -50,6 +53,9 @@ const PregnancyDashboardPage: React.FC = memo(() => {
   const [showSymptomModal, setShowSymptomModal] = useState(false);
   const [symptomForm, setSymptomForm] = useState<{ name: string; severity: 'léger' | 'modéré' | 'sévère' }>({ name: '', severity: 'léger' });
   const [showMedicationModal, setShowMedicationModal] = useState(false);
+  const [showSymptomTracker, setShowSymptomTracker] = useState(false);
+  const [showKickCounter, setShowKickCounter] = useState(false);
+  const [showWeightTracker, setShowWeightTracker] = useState(false);
   const [medForm, setMedForm] = useState<{ name: string; dose: string; frequency: string }>({ name: '', dose: '', frequency: '' });
   const [refreshing, setRefreshing] = useState(false);
   const [apptFilter, setApptFilter] = useState<'upcoming' | 'past' | 'all'>('upcoming');
@@ -425,6 +431,47 @@ const PregnancyDashboardPage: React.FC = memo(() => {
           </div>
         </Card>
 
+        {/* Outils de suivi */}
+        <Card title="Outils de suivi" className="bg-[#f0f9ff] mb-4">
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => setShowSymptomTracker(true)}
+              className="flex flex-col items-center p-4 rounded-xl bg-white hover:bg-gray-50 transition-colors"
+            >
+              <div className="text-3xl mb-2">📊</div>
+              <div className="text-sm font-medium text-gray-900">Tracker de Symptômes</div>
+              <div className="text-xs text-gray-500 text-center">Suivez vos symptômes quotidiennement</div>
+            </button>
+            
+            <button
+              onClick={() => setShowKickCounter(true)}
+              className="flex flex-col items-center p-4 rounded-xl bg-white hover:bg-gray-50 transition-colors"
+            >
+              <div className="text-3xl mb-2">👶</div>
+              <div className="text-sm font-medium text-gray-900">Compteur de Mouvements</div>
+              <div className="text-xs text-gray-500 text-center">Enregistrez les mouvements du bébé</div>
+            </button>
+            
+            <button
+              onClick={() => setShowWeightTracker(true)}
+              className="flex flex-col items-center p-4 rounded-xl bg-white hover:bg-gray-50 transition-colors"
+            >
+              <div className="text-3xl mb-2">⚖️</div>
+              <div className="text-sm font-medium text-gray-900">Suivi du Poids</div>
+              <div className="text-xs text-gray-500 text-center">Surveillez votre prise de poids</div>
+            </button>
+            
+            <button
+              onClick={() => show('Fonctionnalité en développement', 'info')}
+              className="flex flex-col items-center p-4 rounded-xl bg-white hover:bg-gray-50 transition-colors opacity-60"
+            >
+              <div className="text-3xl mb-2">📝</div>
+              <div className="text-sm font-medium text-gray-900">Journal d'Humeur</div>
+              <div className="text-xs text-gray-500 text-center">Bientôt disponible</div>
+            </button>
+          </div>
+        </Card>
+
         {/* Historique médical récent */}
         <Card title="Historique médical récent" className="bg-[#ffe8ed] mb-8">
           <div className="space-y-2">
@@ -635,6 +682,28 @@ const PregnancyDashboardPage: React.FC = memo(() => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modales des nouveaux outils */}
+      {showSymptomTracker && user && (
+        <SymptomTracker
+          userId={user.id}
+          onClose={() => setShowSymptomTracker(false)}
+        />
+      )}
+
+      {showKickCounter && user && (
+        <KickCounter
+          userId={user.id}
+          onClose={() => setShowKickCounter(false)}
+        />
+      )}
+
+      {showWeightTracker && user && (
+        <WeightTracker
+          userId={user.id}
+          onClose={() => setShowWeightTracker(false)}
+        />
       )}
     </div>
   );
