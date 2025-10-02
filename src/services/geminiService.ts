@@ -28,7 +28,7 @@ export class GeminiService {
 
   async generateContent(prompt: string): Promise<string> {
     try {
-      console.log('🤖 Génération de contenu avec Gemini 2.5 Flash...');
+      console.log('🤖 Génération de contenu avec Gemini 1.5 Flash...');
       
       // Ajouter un timeout pour éviter les attentes trop longues
       const timeoutPromise = new Promise<never>((_, reject) => {
@@ -57,7 +57,7 @@ export class GeminiService {
 
   async chatWithAI(messages: GeminiMessage[]): Promise<string> {
     try {
-      console.log('💬 Chat avec Gemini 2.5 Flash...');
+      console.log('💬 Chat avec Gemini 1.5 Flash...');
       
       // Ajouter un timeout pour éviter les attentes trop longues
       const timeoutPromise = new Promise<never>((_, reject) => {

@@ -54,7 +54,7 @@ const AICoachChatPage: React.FC = () => {
   useEffect(() => {
     const initializeChat = async () => {
       try {
-        console.log('🚀 Initialisation du chat IA...');
+        console.log('🚀 Initialisation du chat IA avec Gemini 1.5 Flash...');
         // Simuler un délai d'initialisation pour éviter les redirections
         await new Promise(resolve => setTimeout(resolve, 1000));
         setIsInitializing(false);

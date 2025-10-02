@@ -11,6 +11,7 @@ const SignInPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<{email?: string, password?: string}>({});
   const { navigateToSignUp, navigateTo } = useNavigation();
   const { login } = useAuth();
 
@@ -19,10 +20,41 @@ const SignInPage: React.FC = () => {
     navigateToSignUp();
   };
 
+  // Validation des champs
+  const validateFields = () => {
+    const errors: {email?: string, password?: string} = {};
+    
+    // Validation email
+    if (!email.trim()) {
+      errors.email = 'L\'adresse email est requise';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.email = 'Format d\'email invalide';
+    }
+    
+    // Validation mot de passe
+    if (!password.trim()) {
+      errors.password = 'Le mot de passe est requis';
+    } else if (password.length < 6) {
+      errors.password = 'Le mot de passe doit contenir au moins 6 caractères';
+    }
+    
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    
+    // Réinitialiser les erreurs
     setError('');
+    setFieldErrors({});
+    
+    // Validation côté client
+    if (!validateFields()) {
+      return;
+    }
+    
+    setIsLoading(true);
     
     try {
       const success = await login(email, password);
@@ -30,10 +62,21 @@ const SignInPage: React.FC = () => {
         // Après login, rediriger vers la page d'accueil
         navigateTo('home');
       } else {
-        setError('Email ou mot de passe incorrect');
+        setError('Email ou mot de passe incorrect. Vérifiez vos identifiants et réessayez.');
       }
     } catch (error) {
-      setError('Erreur lors de la connexion. Veuillez réessayer.');
+      console.error('Erreur de connexion:', error);
+      if (error instanceof Error) {
+        if (error.message.includes('timeout')) {
+          setError('Connexion lente. Vérifiez votre connexion internet et réessayez.');
+        } else if (error.message.includes('404')) {
+          setError('Service temporairement indisponible. Veuillez réessayer plus tard.');
+        } else {
+          setError('Erreur lors de la connexion. Veuillez réessayer.');
+        }
+      } else {
+        setError('Erreur inattendue. Veuillez réessayer.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -127,10 +170,15 @@ const SignInPage: React.FC = () => {
                 <p className="text-gray-600">Accédez à votre espace personnel</p>
         </div>
 
-        {/* Message d'erreur */}
+        {/* Message d'erreur global */}
         {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm mb-6">
-            {error}
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm mb-6 animate-pulse">
+            <div className="flex items-center space-x-2">
+              <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+              <span>{error}</span>
+            </div>
           </div>
         )}
 
@@ -142,18 +190,36 @@ const SignInPage: React.FC = () => {
               Adresse email
             </label>
             <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-gray-400" />
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Mail className={`h-5 w-5 ${fieldErrors.email ? 'text-red-400' : 'text-gray-400'}`} />
               </div>
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                      className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-gray-50/50 backdrop-blur-sm"
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  // Effacer l'erreur du champ quand l'utilisateur tape
+                  if (fieldErrors.email) {
+                    setFieldErrors(prev => ({ ...prev, email: undefined }));
+                  }
+                }}
+                className={`w-full pl-12 pr-4 py-4 border rounded-xl focus:outline-none focus:ring-2 focus:border-transparent bg-gray-50/50 backdrop-blur-sm transition-colors ${
+                  fieldErrors.email 
+                    ? 'border-red-300 focus:ring-red-500' 
+                    : 'border-gray-200 focus:ring-pink-500'
+                }`}
                 placeholder="votre@email.com"
                 required
               />
             </div>
+            {fieldErrors.email && (
+              <p className="mt-2 text-sm text-red-600 flex items-center space-x-1">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                <span>{fieldErrors.email}</span>
+              </p>
+            )}
           </div>
 
           {/* Mot de passe */}

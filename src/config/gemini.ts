@@ -3,10 +3,10 @@ export const GEMINI_CONFIG = {
   apiKey: 'AIzaSyAGyYDydVRJ5tkAkEoIHLVp6HpES3Of4cw',
   modelName: 'gemini-2.5-flash',
   generationConfig: {
-    temperature: 0.5,        // Plus bas pour des réponses plus cohérentes
-    maxOutputTokens: 300,    // Réduit pour des réponses courtes
-    topP: 0.7,              // Réduit pour plus de précision
-    topK: 20                // Réduit pour des réponses plus ciblées
+    temperature: 0.7,
+    maxOutputTokens: 1500,
+    topP: 0.8,
+    topK: 40
   }
 };
 
