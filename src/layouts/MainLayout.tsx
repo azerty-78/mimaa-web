@@ -20,6 +20,7 @@ const SignUpPage = lazy(() => import('../pages/SignUpPage'));
 const AICoachChatPage = lazy(() => import('../pages/AICoachChatPage'));
 const DoctorChatPage = lazy(() => import('../pages/DoctorChatPage'));
 const CommunityChatPage = lazy(() => import('../pages/CommunityChatPage'));
+const DoctorPatientsChatPage = lazy(() => import('../pages/DoctorPatientsChatPage'));
 const NotificationsPage = lazy(() => import('../pages/NotificationsPage'));
 
 const MainLayout: React.FC = memo(() => {
@@ -152,6 +153,12 @@ const MainLayout: React.FC = memo(() => {
         return (
           <Suspense fallback={<LoadingSpinner />}>
             <CommunityChatPage />
+          </Suspense>
+        );
+      case 'doctor-patients-chat':
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <DoctorPatientsChatPage />
           </Suspense>
         );
       case 'pregnant-dashboard':

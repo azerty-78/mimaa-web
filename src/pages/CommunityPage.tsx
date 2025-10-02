@@ -21,6 +21,9 @@ const CommunityPage: React.FC = memo(() => {
       navigateTo('doctor-chat');
     } else if (chatType === 'community') {
       navigateTo('community-chat');
+    } else if (chatType === 'patients') {
+      // Pour le médecin, rediriger vers la page de chat avec les patients
+      navigateTo('doctor-patients-chat');
     }
   };
 
@@ -48,71 +51,176 @@ const CommunityPage: React.FC = memo(() => {
     { icon: Search, label: 'Rechercher', color: 'from-green-500 to-green-600', bgColor: 'bg-green-50' }
   ];
 
-  const chatOptions = [
-    {
-      id: 'ai-coach',
-      title: 'Coach IA Médical',
-      description: 'Conseils médicaux personnalisés pour femmes enceintes 24/7',
-      icon: SmartToy,
-      color: 'from-blue-500 to-blue-600',
-      bgColor: 'bg-blue-50',
-      notifications: 0,
-      status: 'En ligne',
-      lastMessage: 'Comment puis-je vous aider aujourd\'hui ?'
-    },
-    {
-      id: 'doctor',
-      title: 'Dr. Jeff',
-      description: 'Votre médecin traitant - Gynécologue',
-      icon: LocalHospital,
-      color: 'from-green-500 to-green-600',
-      bgColor: 'bg-green-50',
-      notifications: 2,
-      status: 'En ligne',
-      lastMessage: 'Vos résultats d\'analyses sont prêts'
-    },
-    {
-      id: 'community',
-      title: 'Communauté MIMAA',
-      description: 'Échangez avec d\'autres membres de communauté',
-      icon: Favorite,
-      color: 'from-purple-500 to-purple-600',
-      bgColor: 'bg-purple-50',
-      notifications: 0,
-      status: '5678 membres actifs',
-      lastMessage: 'Sarah M. a partagé un conseil'
-    }
-  ];
+  // Options de chat selon le type d'utilisateur
+  const getChatOptions = () => {
+    const baseOptions = [
+      {
+        id: 'ai-coach',
+        title: 'Coach IA Médical',
+        description: 'Conseils médicaux personnalisés 24/7',
+        icon: SmartToy,
+        color: 'from-blue-500 to-blue-600',
+        bgColor: 'bg-blue-50',
+        notifications: 0,
+        status: 'En ligne',
+        lastMessage: 'Comment puis-je vous aider aujourd\'hui ?'
+      }
+    ];
 
-  const recentMessages = [
-    {
-      id: 1,
-      sender: 'Dr. Jeff',
-      message: 'Vos résultats d\'analyses sont prêts',
-      time: '14:30',
-      unread: true
-    },
-    {
-      id: 2,
-      sender: 'Sarah M.',
-      message: 'Conseil pour les nausées matinales',
-      time: '13:45',
-      unread: false
-    },
-    {
-      id: 3,
-      sender: 'Coach IA',
-      message: 'Rappel: Prenez vos vitamines',
-      time: '12:20',
-      unread: false
+    if (user?.profileType === 'pregnant_woman') {
+      return [
+        ...baseOptions,
+        {
+          id: 'doctor',
+          title: 'Dr. Jeff',
+          description: 'Votre médecin traitant - Gynécologue',
+          icon: LocalHospital,
+          color: 'from-green-500 to-green-600',
+          bgColor: 'bg-green-50',
+          notifications: 2,
+          status: 'En ligne',
+          lastMessage: 'Vos résultats d\'analyses sont prêts'
+        },
+        {
+          id: 'community',
+          title: 'Communauté MIMAA',
+          description: 'Échangez avec d\'autres femmes enceintes',
+          icon: Favorite,
+          color: 'from-purple-500 to-purple-600',
+          bgColor: 'bg-purple-50',
+          notifications: 0,
+          status: '5678 membres actifs',
+          lastMessage: 'Sarah M. a partagé un conseil'
+        }
+      ];
+    } else if (user?.profileType === 'doctor') {
+      return [
+        ...baseOptions,
+        {
+          id: 'patients',
+          title: 'Mes Patients',
+          description: 'Chat avec vos patientes enceintes',
+          icon: People,
+          color: 'from-green-500 to-green-600',
+          bgColor: 'bg-green-50',
+          notifications: 3,
+          status: '5 patientes actives',
+          lastMessage: 'Marie Hélène a une question urgente'
+        }
+      ];
+    } else if (user?.profileType === 'administrator') {
+      return baseOptions; // Seulement l'IA pour l'admin
     }
-  ];
 
-  const stats = [
-    { icon: People, label: 'Membres actifs', value: '1,234', color: 'text-blue-600' },
-    { icon: Message, label: 'Messages', value: '5,678', color: 'text-green-600' },
-    { icon: TrendingUp, label: 'Engagement', value: '+24%', color: 'text-purple-600' }
-  ];
+    return baseOptions; // Par défaut
+  };
+
+  const chatOptions = getChatOptions();
+
+  // Messages récents selon le type d'utilisateur
+  const getRecentMessages = () => {
+    if (user?.profileType === 'pregnant_woman') {
+      return [
+        {
+          id: 1,
+          sender: 'Dr. Jeff',
+          message: 'Vos résultats d\'analyses sont prêts',
+          time: '14:30',
+          unread: true
+        },
+        {
+          id: 2,
+          sender: 'Sarah M.',
+          message: 'Conseil pour les nausées matinales',
+          time: '13:45',
+          unread: false
+        },
+        {
+          id: 3,
+          sender: 'Coach IA',
+          message: 'Rappel: Prenez vos vitamines',
+          time: '12:20',
+          unread: false
+        }
+      ];
+    } else if (user?.profileType === 'doctor') {
+      return [
+        {
+          id: 1,
+          sender: 'Marie Hélène',
+          message: 'Question urgente sur mes symptômes',
+          time: '14:30',
+          unread: true
+        },
+        {
+          id: 2,
+          sender: 'Fatou K.',
+          message: 'Résultats d\'échographie à consulter',
+          time: '13:45',
+          unread: false
+        },
+        {
+          id: 3,
+          sender: 'Coach IA',
+          message: 'Rappel: Consultation de demain',
+          time: '12:20',
+          unread: false
+        }
+      ];
+    } else if (user?.profileType === 'administrator') {
+      return [
+        {
+          id: 1,
+          sender: 'Coach IA',
+          message: 'Rapport d\'activité du jour',
+          time: '14:30',
+          unread: false
+        },
+        {
+          id: 2,
+          sender: 'Système',
+          message: 'Mise à jour des données terminée',
+          time: '13:45',
+          unread: false
+        }
+      ];
+    }
+
+    return [];
+  };
+
+  const recentMessages = getRecentMessages();
+
+  // Statistiques selon le type d'utilisateur
+  const getStats = () => {
+    if (user?.profileType === 'pregnant_woman') {
+      return [
+        { icon: People, label: 'Membres actifs', value: '1,234', color: 'text-blue-600' },
+        { icon: Message, label: 'Messages', value: '5,678', color: 'text-green-600' },
+        { icon: TrendingUp, label: 'Engagement', value: '+24%', color: 'text-purple-600' }
+      ];
+    } else if (user?.profileType === 'doctor') {
+      return [
+        { icon: People, label: 'Patients actifs', value: '12', color: 'text-blue-600' },
+        { icon: Message, label: 'Messages reçus', value: '45', color: 'text-green-600' },
+        { icon: TrendingUp, label: 'Consultations', value: '8', color: 'text-purple-600' }
+      ];
+    } else if (user?.profileType === 'administrator') {
+      return [
+        { icon: People, label: 'Utilisateurs', value: '156', color: 'text-blue-600' },
+        { icon: Message, label: 'Messages totaux', value: '2,847', color: 'text-green-600' },
+        { icon: TrendingUp, label: 'Activité', value: '+12%', color: 'text-purple-600' }
+      ];
+    }
+
+    return [
+      { icon: People, label: 'Membres', value: '0', color: 'text-blue-600' },
+      { icon: Message, label: 'Messages', value: '0', color: 'text-green-600' },
+      { icon: TrendingUp, label: 'Activité', value: '0%', color: 'text-purple-600' }
+    ];
+  };
+
+  const stats = getStats();
 
   return (
     <div className="w-full min-h-full bg-gradient-to-br from-gray-50 to-blue-50">
@@ -138,9 +246,17 @@ const CommunityPage: React.FC = memo(() => {
         <div className={`bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-6 text-white text-center shadow-xl ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
         } transition-all duration-700`} style={{ animationDelay: '100ms' }}>
-          <h2 className="text-xl font-bold mb-2">Votre espace de communication</h2>
+          <h2 className="text-xl font-bold mb-2">
+            {user?.profileType === 'pregnant_woman' && 'Votre espace de communication'}
+            {user?.profileType === 'doctor' && 'Espace médecin'}
+            {user?.profileType === 'administrator' && 'Espace administrateur'}
+            {!user?.profileType && 'Espace de communication'}
+          </h2>
           <p className="text-blue-100 text-sm">
-            Connectez-vous avec votre médecin, votre coach IA et d'autres membres
+            {user?.profileType === 'pregnant_woman' && 'Connectez-vous avec votre médecin, votre coach IA et d\'autres membres'}
+            {user?.profileType === 'doctor' && 'Communiquez avec vos patientes et accédez à l\'assistance IA'}
+            {user?.profileType === 'administrator' && 'Gérez la plateforme avec l\'assistance de l\'IA'}
+            {!user?.profileType && 'Connectez-vous avec les services disponibles'}
           </p>
         </div>
 
