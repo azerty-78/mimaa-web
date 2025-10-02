@@ -62,7 +62,7 @@ const CommunityPage: React.FC = memo(() => {
     },
     {
       id: 'doctor',
-      title: 'Dr. Marie Diallo',
+      title: 'Dr. Jeff',
       description: 'Votre médecin traitant - Gynécologue',
       icon: LocalHospital,
       color: 'from-green-500 to-green-600',
@@ -87,7 +87,7 @@ const CommunityPage: React.FC = memo(() => {
   const recentMessages = [
     {
       id: 1,
-      sender: 'Dr. Marie Diallo',
+      sender: 'Dr. Jeff',
       message: 'Vos résultats d\'analyses sont prêts',
       time: '14:30',
       unread: true

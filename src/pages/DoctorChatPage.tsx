@@ -19,8 +19,8 @@ const DoctorChatPage: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'Bonjour ! Je suis le Dr. Marie Diallo, votre médecin traitant. Comment puis-je vous aider aujourd\'hui ?',
-      author: 'Dr. Marie Diallo',
+      text: 'Bonjour ! Je suis le Dr. Jeff, votre médecin traitant. Comment puis-je vous aider aujourd\'hui ?',
+      author: 'Dr. Jeff',
       authorImage: null,
       timestamp: new Date(),
       isUser: false
@@ -36,7 +36,7 @@ const DoctorChatPage: React.FC = () => {
     {
       id: '3',
       text: 'Bien sûr ! Je peux vous aider avec vos résultats. Pouvez-vous me dire quels examens vous avez effectués récemment ?',
-      author: 'Dr. Marie Diallo',
+      author: 'Dr. Jeff',
       authorImage: null,
       timestamp: new Date(),
       isUser: false
@@ -75,7 +75,7 @@ const DoctorChatPage: React.FC = () => {
       const doctorResponse: Message = {
         id: (Date.now() + 1).toString(),
         text: generateDoctorResponse(newMessage),
-        author: 'Dr. Marie Diallo',
+        author: 'Dr. Jeff',
         authorImage: null,
         timestamp: new Date(),
         isUser: false
@@ -138,7 +138,7 @@ const DoctorChatPage: React.FC = () => {
             <LocalHospital className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="font-semibold">Dr. Marie Diallo</h1>
+            <h1 className="font-semibold">Dr. Jeff</h1>
             <p className="text-xs text-green-100">En ligne</p>
           </div>
         </div>
@@ -214,7 +214,7 @@ const DoctorChatPage: React.FC = () => {
           <div className="flex justify-start">
             <div className="flex space-x-2">
               <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                <span className="text-xs font-semibold text-gray-600">MD</span>
+                <span className="text-xs font-semibold text-gray-600">DJ</span>
               </div>
               <div className="bg-gray-100 text-gray-800 px-4 py-2 rounded-2xl">
                 <div className="flex space-x-1">

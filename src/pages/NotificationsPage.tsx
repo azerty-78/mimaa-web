@@ -44,7 +44,7 @@ const NotificationsPage: React.FC = memo(() => {
     },
     {
       id: '4',
-      title: 'Message du Dr. Diallo',
+      title: 'Message du Dr. Jeff',
       message: 'J\'ai examiné vos résultats, tout va bien !',
       type: 'success',
       timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 jours ago
