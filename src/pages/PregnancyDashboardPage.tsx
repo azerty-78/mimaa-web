@@ -5,6 +5,7 @@ import { useToast } from '../components/ToastProvider';
 import SymptomTracker from '../components/SymptomTracker';
 import KickCounter from '../components/KickCounter';
 import WeightTracker from '../components/WeightTracker';
+import ReminderSystem from '../components/ReminderSystem';
 
 const Card: React.FC<{ title: string; subtitle?: string; className?: string; children?: React.ReactNode }> = ({ title, subtitle, className, children }) => (
   <div className={`rounded-2xl p-4 sm:p-5 shadow border border-black/5 ${className || ''}`}>
@@ -56,6 +57,7 @@ const PregnancyDashboardPage: React.FC = memo(() => {
   const [showSymptomTracker, setShowSymptomTracker] = useState(false);
   const [showKickCounter, setShowKickCounter] = useState(false);
   const [showWeightTracker, setShowWeightTracker] = useState(false);
+  const [showReminders, setShowReminders] = useState(false);
   const [medForm, setMedForm] = useState<{ name: string; dose: string; frequency: string }>({ name: '', dose: '', frequency: '' });
   const [refreshing, setRefreshing] = useState(false);
   const [apptFilter, setApptFilter] = useState<'upcoming' | 'past' | 'all'>('upcoming');
@@ -462,12 +464,12 @@ const PregnancyDashboardPage: React.FC = memo(() => {
             </button>
             
             <button
-              onClick={() => show('Fonctionnalité en développement', 'info')}
-              className="flex flex-col items-center p-4 rounded-xl bg-white hover:bg-gray-50 transition-colors opacity-60"
+              onClick={() => setShowReminders(true)}
+              className="flex flex-col items-center p-4 rounded-xl bg-white hover:bg-gray-50 transition-colors"
             >
-              <div className="text-3xl mb-2">📝</div>
-              <div className="text-sm font-medium text-gray-900">Journal d'Humeur</div>
-              <div className="text-xs text-gray-500 text-center">Bientôt disponible</div>
+              <div className="text-3xl mb-2">⏰</div>
+              <div className="text-sm font-medium text-gray-900">Rappels</div>
+              <div className="text-xs text-gray-500 text-center">Programmez vos rappels</div>
             </button>
           </div>
         </Card>
@@ -703,6 +705,15 @@ const PregnancyDashboardPage: React.FC = memo(() => {
         <WeightTracker
           userId={user.id}
           onClose={() => setShowWeightTracker(false)}
+        />
+      )}
+
+      {/* Modale Rappels */}
+      {showReminders && user && (
+        <ReminderSystem
+          userId={user.id}
+          onClose={() => setShowReminders(false)}
+          onNotify={(m) => show(m, 'info')}
         />
       )}
     </div>
