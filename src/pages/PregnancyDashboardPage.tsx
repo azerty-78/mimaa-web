@@ -10,7 +10,7 @@ import ContractionTracker from '../components/ContractionTracker';
 import MoodTracker from '../components/MoodTracker';
 
 const Card: React.FC<{ title: string; subtitle?: string; className?: string; children?: React.ReactNode }> = ({ title, subtitle, className, children }) => (
-  <div className={`rounded-2xl p-4 sm:p-5 shadow border border-black/5 ${className || ''}`}>
+  <div className={`rounded-2xl p-4 sm:p-5 md:p-6 shadow border border-black/5 transition-shadow duration-200 hover:shadow-md ${className || ''}`}>
     <div className="mb-3">
       <h3 className="text-xl font-semibold" style={{ fontFamily: 'Comic Sans MS, ui-rounded, system-ui' }}>{title}</h3>
       {subtitle && <p className="text-sm text-gray-600">{subtitle}</p>}
@@ -19,10 +19,17 @@ const Card: React.FC<{ title: string; subtitle?: string; className?: string; chi
   </div>
 );
 
-const StatTile: React.FC<{ color: string; icon: React.ReactNode; label: string; value: string }> = ({ color, icon, label, value }) => (
-  <div className={`rounded-2xl p-4 text-white`} style={{ background: color }}>
+const StatTile: React.FC<{ color: string; icon: React.ReactNode; label: string; value: string; delay?: number }> = ({ color, icon, label, value, delay = 0 }) => (
+  <div 
+    className={`rounded-2xl p-4 text-white transition-all duration-500 hover:scale-105 hover:shadow-lg`} 
+    style={{ 
+      background: color,
+      animationDelay: `${delay}ms`,
+      animation: 'fadeInUp 0.6s ease-out forwards'
+    }}
+  >
     <div className="flex items-center justify-between">
-      <div className="text-2xl">{icon}</div>
+      <div className="text-2xl transition-transform duration-300 hover:scale-110">{icon}</div>
       <div className="text-2xl font-semibold" style={{ fontFamily: 'Comic Sans MS, ui-rounded, system-ui' }}>{value}</div>
     </div>
     <div className="mt-2 text-white/90" style={{ fontFamily: 'Comic Sans MS, ui-rounded, system-ui' }}>{label}</div>
@@ -78,7 +85,9 @@ const PregnancyDashboardPage: React.FC = memo(() => {
   });
   // const isDev = import.meta.env.MODE !== 'production';
 
-  useEffect(() => { setIsVisible(true); }, []);
+  useEffect(() => { 
+    setIsVisible(true);
+  }, []);
 
   useEffect(() => {
     const load = async () => {
@@ -297,47 +306,137 @@ const PregnancyDashboardPage: React.FC = memo(() => {
     }
   };
 
+  // Indicateurs de statut en temps réel
+  const getHealthStatus = () => {
+    if (!record) return { status: 'loading', message: 'Chargement...', color: 'gray' };
+    
+    const week = record.currentWeek || 0;
+    
+    if (week >= 37) return { status: 'ready', message: 'Prêt pour l\'accouchement', color: 'green' };
+    if (week >= 32) return { status: 'late', message: '3ème trimestre', color: 'blue' };
+    if (week >= 14) return { status: 'mid', message: '2ème trimestre', color: 'yellow' };
+    if (week >= 1) return { status: 'early', message: '1er trimestre', color: 'orange' };
+    
+    return { status: 'unknown', message: 'Statut inconnu', color: 'gray' };
+  };
+
+  const getNextMilestone = () => {
+    if (!record) return null;
+    const week = record.currentWeek || 0;
+    
+    if (week < 12) return { week: 12, name: 'Fin du 1er trimestre', days: (12 - week) * 7 };
+    if (week < 20) return { week: 20, name: 'Échographie morphologique', days: (20 - week) * 7 };
+    if (week < 28) return { week: 28, name: 'Début du 3ème trimestre', days: (28 - week) * 7 };
+    if (week < 37) return { week: 37, name: 'Terme', days: (37 - week) * 7 };
+    return null;
+  };
+
+  const healthStatus = getHealthStatus();
+  const nextMilestone = getNextMilestone();
+
   return (
     <div className={`w-full min-h-screen bg-gray-100 text-gray-900`}> 
-      <div className="max-w-md mx-auto px-3 py-4">
+      <style>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @keyframes slideInLeft {
+          from {
+            opacity: 0;
+            transform: translateX(-30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+        }
+      `}</style>
+      <div className="max-w-3xl md:max-w-4xl lg:max-w-5xl mx-auto px-3 sm:px-4 md:px-6 py-4 md:py-6">
         {loading && (
           <div className="rounded-2xl bg-white shadow p-5 mb-4">Chargement…</div>
         )}
         {/* Header de salutation */}
-        <div className={`rounded-2xl bg-white shadow p-5 mb-4 transition-all ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}>
-          <div className="text-2xl mb-2" style={{ fontFamily: 'Comic Sans MS, ui-rounded, system-ui' }}>Bonjour {user?.firstName || 'Utilisateur'} 👋</div>
-          <CircularProgress percent={Math.min(100, Math.max(0, Math.round(((record?.currentWeek || 0) / 40) * 100)))} />
-          <div className="mt-4 grid grid-cols-3 gap-2">
-            <div className="rounded-xl bg-pink-50 text-center py-3">
+        <div className={`rounded-2xl bg-gradient-to-br from-pink-50 to-purple-50 shadow-lg p-6 mb-6 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+            <div>
+              <div className="text-3xl font-bold mb-2" style={{ fontFamily: 'Comic Sans MS, ui-rounded, system-ui' }}>
+                Bonjour {user?.firstName || 'Utilisateur'} 👋
+              </div>
+              <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-${healthStatus.color}-100 text-${healthStatus.color}-800`}>
+                <div className={`w-2 h-2 rounded-full bg-${healthStatus.color}-500 mr-2 animate-pulse`}></div>
+                {healthStatus.message}
+              </div>
+            </div>
+            <div className="mt-4 md:mt-0">
+              <CircularProgress percent={Math.min(100, Math.max(0, Math.round(((record?.currentWeek || 0) / 40) * 100)))} />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+            <div className="rounded-xl bg-white/70 backdrop-blur-sm text-center py-3 transition-transform hover:scale-105">
               <div className="text-xs text-gray-500">DPA</div>
               <div className="text-sm font-medium">{formatDate(record?.dueDate)}</div>
             </div>
-            <div className="rounded-xl bg-pink-50 text-center py-3">
+            <div className="rounded-xl bg-white/70 backdrop-blur-sm text-center py-3 transition-transform hover:scale-105">
               <div className="text-xs text-gray-500">Semaine</div>
               <div className="text-sm font-medium">{record?.currentWeek ? `${record.currentWeek}sa` : '—'}</div>
             </div>
-            <div className="rounded-xl bg-pink-50 text-center py-3">
+            <div className="rounded-xl bg-white/70 backdrop-blur-sm text-center py-3 transition-transform hover:scale-105">
               <div className="text-xs text-gray-500">Poids</div>
               <div className="text-sm font-medium">{record?.weightKg ? `${record.weightKg} kg` : '—'}</div>
             </div>
+            <div className="rounded-xl bg-white/70 backdrop-blur-sm text-center py-3 transition-transform hover:scale-105">
+              <div className="text-xs text-gray-500">Prochaine étape</div>
+              <div className="text-sm font-medium">{nextMilestone ? `${nextMilestone.days}j` : '—'}</div>
+            </div>
           </div>
+
           {record?.babyName && (
-            <div className="mt-2 text-center text-sm text-gray-700">Bébé: <span className="font-semibold">{record.babyName}</span></div>
+            <div className="text-center text-sm text-gray-700 mb-3">
+              Bébé: <span className="font-semibold text-pink-600">{record.babyName}</span>
+            </div>
           )}
-          <div className="mt-3 text-center">
-            <button onClick={refresh} className="text-blue-700 underline text-sm" disabled={refreshing}>{refreshing ? 'Rafraîchissement…' : 'Rafraîchir'}</button>
+
+          {nextMilestone && (
+            <div className="bg-white/50 rounded-xl p-3 mb-3">
+              <div className="text-sm text-gray-600">Prochaine étape importante</div>
+              <div className="font-semibold text-gray-900">{nextMilestone.name}</div>
+              <div className="text-xs text-gray-500">Dans {nextMilestone.days} jours (semaine {nextMilestone.week})</div>
+            </div>
+          )}
+
+          <div className="text-center">
+            <button 
+              onClick={refresh} 
+              className="text-blue-700 underline text-sm hover:text-blue-900 transition-colors" 
+              disabled={refreshing}
+            >
+              {refreshing ? 'Rafraîchissement…' : 'Rafraîchir'}
+            </button>
           </div>
         </div>
 
         {/* Stat tuiles */}
-        <div className="grid grid-cols-3 gap-3 mb-4">
-          <StatTile color="#0f3d2e" icon={<span>🩺</span>} label="Consultations" value={`${appointments.length}`} />
-          <StatTile color="#2b1235" icon={<span>💊</span>} label="Médicaments" value={`${record?.medications?.length || 0}`} />
-          <StatTile color="#3b2411" icon={<span>⚠️</span>} label="Symptômes" value={`${record?.symptoms?.length || 0}`} />
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+          <StatTile color="#0f3d2e" icon={<span>🩺</span>} label="Consultations" value={`${appointments.length}`} delay={100} />
+          <StatTile color="#2b1235" icon={<span>💊</span>} label="Médicaments" value={`${record?.medications?.length || 0}`} delay={200} />
+          <StatTile color="#3b2411" icon={<span>⚠️</span>} label="Symptômes" value={`${record?.symptoms?.length || 0}`} delay={300} />
         </div>
 
         {/* Développement de bébé */}
-        <Card title="Développement de bébé" subtitle={record?.currentWeek ? `Semaine ${record.currentWeek}` : undefined} className="bg-[#fff7ec] mb-4">
+        <div className="animate-fadeInUp" style={{ animationDelay: '400ms' }}>
+          <Card title="Développement de bébé" subtitle={record?.currentWeek ? `Semaine ${record.currentWeek}` : undefined} className="bg-[#fff7ec] mb-4">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="text-gray-600">Taille</div>
@@ -369,9 +468,11 @@ const PregnancyDashboardPage: React.FC = memo(() => {
               )}
             </div>
           </div>
-        </Card>
+          </Card>
+        </div>
 
         {/* Prochains RDV */}
+        <div className="animate-fadeInUp" style={{ animationDelay: '500ms' }}>
         <Card title="Prochains RDV" className="bg-[#eaf8ef] mb-4">
           <div className="flex items-center gap-2 mb-2 text-sm">
             <button className={`${apptFilter==='upcoming'?'font-semibold underline':''}`} onClick={()=>setApptFilter('upcoming')}>À venir</button>
@@ -400,6 +501,7 @@ const PregnancyDashboardPage: React.FC = memo(() => {
             <button onClick={openApptModal} className="text-blue-700 font-medium underline">Programmer un RDV</button>
           </div>
         </Card>
+        </div>
 
         {/* Symptômes actuels */}
         <Card title="Symptômes actuels" className="bg-[#fff1df] mb-4">
@@ -477,11 +579,12 @@ const PregnancyDashboardPage: React.FC = memo(() => {
         </Card>
 
         {/* Outils de suivi */}
-        <Card title="Outils de suivi" className="bg-[#f0f9ff] mb-4">
-          <div className="grid grid-cols-2 gap-3">
+        <div className="animate-fadeInUp" style={{ animationDelay: '800ms' }}>
+          <Card title="Outils de suivi" className="bg-[#f0f9ff] mb-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <button
               onClick={() => setShowSymptomTracker(true)}
-              className="flex flex-col items-center p-4 rounded-xl bg-white hover:bg-gray-50 transition-colors"
+              className="flex flex-col items-center p-4 rounded-xl bg-white hover:bg-gray-50 transition-colors transition-transform duration-200 hover:scale-[1.02]"
             >
               <div className="text-3xl mb-2">📊</div>
               <div className="text-sm font-medium text-gray-900">Tracker de Symptômes</div>
@@ -490,7 +593,7 @@ const PregnancyDashboardPage: React.FC = memo(() => {
             
             <button
               onClick={() => setShowKickCounter(true)}
-              className="flex flex-col items-center p-4 rounded-xl bg-white hover:bg-gray-50 transition-colors"
+              className="flex flex-col items-center p-4 rounded-xl bg-white hover:bg-gray-50 transition-colors transition-transform duration-200 hover:scale-[1.02]"
             >
               <div className="text-3xl mb-2">👶</div>
               <div className="text-sm font-medium text-gray-900">Compteur de Mouvements</div>
@@ -499,7 +602,7 @@ const PregnancyDashboardPage: React.FC = memo(() => {
             
             <button
               onClick={() => setShowWeightTracker(true)}
-              className="flex flex-col items-center p-4 rounded-xl bg-white hover:bg-gray-50 transition-colors"
+              className="flex flex-col items-center p-4 rounded-xl bg-white hover:bg-gray-50 transition-colors transition-transform duration-200 hover:scale-[1.02]"
             >
               <div className="text-3xl mb-2">⚖️</div>
               <div className="text-sm font-medium text-gray-900">Suivi du Poids</div>
@@ -508,7 +611,7 @@ const PregnancyDashboardPage: React.FC = memo(() => {
             
             <button
               onClick={() => setShowReminders(true)}
-              className="flex flex-col items-center p-4 rounded-xl bg-white hover:bg-gray-50 transition-colors"
+              className="flex flex-col items-center p-4 rounded-xl bg-white hover:bg-gray-50 transition-colors transition-transform duration-200 hover:scale-[1.02]"
             >
               <div className="text-3xl mb-2">⏰</div>
               <div className="text-sm font-medium text-gray-900">Rappels</div>
@@ -533,10 +636,52 @@ const PregnancyDashboardPage: React.FC = memo(() => {
               <div className="text-xs text-gray-500 text-center">Notez votre ressenti</div>
             </button>
           </div>
-        </Card>
+          </Card>
+        </div>
+
+        {/* Graphiques de progression */}
+        <div className="animate-fadeInUp" style={{ animationDelay: '900ms' }}>
+          <Card title="Progression" className="bg-gradient-to-br from-blue-50 to-indigo-50 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-white rounded-xl p-4">
+                <h4 className="font-semibold text-gray-900 mb-3">Évolution du poids</h4>
+                <div className="h-32 flex items-end space-x-1">
+                  {[60, 61, 62, 63, 64, 65, 66, 67].map((weight, index) => (
+                    <div key={index} className="bg-pink-400 rounded-t flex-1" style={{ height: `${(weight - 60) * 10}%` }}></div>
+                  ))}
+                </div>
+                <div className="text-xs text-gray-500 mt-2">Dernières 8 semaines</div>
+              </div>
+              <div className="bg-white rounded-xl p-4">
+                <h4 className="font-semibold text-gray-900 mb-3">Symptômes fréquents</h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Nausées</span>
+                    <div className="w-20 bg-gray-200 rounded-full h-2">
+                      <div className="bg-red-400 h-2 rounded-full" style={{ width: '75%' }}></div>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Fatigue</span>
+                    <div className="w-20 bg-gray-200 rounded-full h-2">
+                      <div className="bg-orange-400 h-2 rounded-full" style={{ width: '60%' }}></div>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Douleurs</span>
+                    <div className="w-20 bg-gray-200 rounded-full h-2">
+                      <div className="bg-yellow-400 h-2 rounded-full" style={{ width: '40%' }}></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </div>
 
         {/* Historique médical récent */}
-        <Card title="Historique médical récent" className="bg-[#ffe8ed] mb-8">
+        <div className="animate-fadeInUp" style={{ animationDelay: '1000ms' }}>
+          <Card title="Historique médical récent" className="bg-[#ffe8ed] mb-8">
           <div className="space-y-2">
             <div className="p-3 rounded-xl bg-white">
               <div className="font-medium">Échographie</div>
@@ -551,7 +696,8 @@ const PregnancyDashboardPage: React.FC = memo(() => {
               </div>
             )}
           </div>
-        </Card>
+          </Card>
+        </div>
 
         {record?.ultrasounds && record.ultrasounds.length > 0 && (
           <Card title="Historique des échographies" className="bg-[#fff7ec] mb-8" >
