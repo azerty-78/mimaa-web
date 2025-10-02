@@ -15,19 +15,25 @@ export interface GeminiResponse {
 }
 
 export class GeminiService {
-  private genAI: GoogleGenerativeAI;
-  private model: any;
+  private genAI: GoogleGenerativeAI | null = null;
+  private model: any | null = null;
+  private initialized = false;
 
-  constructor() {
+  constructor() {}
+
+  private initIfNeeded() {
+    if (this.initialized) return;
     this.genAI = new GoogleGenerativeAI(GEMINI_CONFIG.apiKey);
-    this.model = this.genAI.getGenerativeModel({ 
+    this.model = this.genAI.getGenerativeModel({
       model: GEMINI_CONFIG.modelName,
-      generationConfig: GEMINI_CONFIG.generationConfig
+      generationConfig: GEMINI_CONFIG.generationConfig,
     });
+    this.initialized = true;
   }
 
   async generateContent(prompt: string): Promise<string> {
     try {
+      this.initIfNeeded();
       console.log('🤖 Génération de contenu avec Gemini 1.5 Flash...');
       
       // Ajouter un timeout pour éviter les attentes trop longues
@@ -35,7 +41,7 @@ export class GeminiService {
         setTimeout(() => reject(new Error('Timeout: La requête a pris trop de temps')), 30000); // 30 secondes
       });
       
-      const generatePromise = this.model.generateContent(prompt);
+      const generatePromise = this.model!.generateContent(prompt);
       const result = await Promise.race([generatePromise, timeoutPromise]);
       
       const response = await result.response;
@@ -57,6 +63,7 @@ export class GeminiService {
 
   async chatWithAI(messages: GeminiMessage[]): Promise<string> {
     try {
+      this.initIfNeeded();
       console.log('💬 Chat avec Gemini 1.5 Flash...');
       
       // Ajouter un timeout pour éviter les attentes trop longues
@@ -65,7 +72,7 @@ export class GeminiService {
       });
       
       // Convertir les messages au format attendu par la nouvelle API
-      const chat = this.model.startChat({
+      const chat = this.model!.startChat({
         history: messages.slice(0, -1).map(msg => ({
           role: msg.role === 'user' ? 'user' : 'model',
           parts: msg.parts
@@ -95,6 +102,7 @@ export class GeminiService {
 
   async generateContentWithImage(prompt: string, imageData: string): Promise<string> {
     try {
+      this.initIfNeeded();
       console.log('🖼️ Génération de contenu avec image...');
       
       // Ajouter un timeout pour éviter les attentes trop longues
@@ -102,7 +110,7 @@ export class GeminiService {
         setTimeout(() => reject(new Error('Timeout: La requête avec image a pris trop de temps')), 30000); // 30 secondes
       });
       
-      const imagePromise = this.model.generateContent([
+      const imagePromise = this.model!.generateContent([
         prompt,
         {
           inlineData: {

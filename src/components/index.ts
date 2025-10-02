@@ -6,4 +6,6 @@ export { default as SymptomTracker } from './SymptomTracker';
 export { default as KickCounter } from './KickCounter';
 export { default as WeightTracker } from './WeightTracker';
 export { default as ReminderSystem } from './ReminderSystem';
+export { default as ContractionTracker } from './ContractionTracker';
+export { default as MoodTracker } from './MoodTracker';
 

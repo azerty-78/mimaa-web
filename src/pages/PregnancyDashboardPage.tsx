@@ -6,6 +6,8 @@ import SymptomTracker from '../components/SymptomTracker';
 import KickCounter from '../components/KickCounter';
 import WeightTracker from '../components/WeightTracker';
 import ReminderSystem from '../components/ReminderSystem';
+import ContractionTracker from '../components/ContractionTracker';
+import MoodTracker from '../components/MoodTracker';
 
 const Card: React.FC<{ title: string; subtitle?: string; className?: string; children?: React.ReactNode }> = ({ title, subtitle, className, children }) => (
   <div className={`rounded-2xl p-4 sm:p-5 shadow border border-black/5 ${className || ''}`}>
@@ -57,6 +59,8 @@ const PregnancyDashboardPage: React.FC = memo(() => {
   const [showSymptomTracker, setShowSymptomTracker] = useState(false);
   const [showKickCounter, setShowKickCounter] = useState(false);
   const [showWeightTracker, setShowWeightTracker] = useState(false);
+  const [showContractionTracker, setShowContractionTracker] = useState(false);
+  const [showMoodTracker, setShowMoodTracker] = useState(false);
   const [showReminders, setShowReminders] = useState(false);
   const [medForm, setMedForm] = useState<{ name: string; dose: string; frequency: string }>({ name: '', dose: '', frequency: '' });
   const [refreshing, setRefreshing] = useState(false);
@@ -115,6 +119,27 @@ const PregnancyDashboardPage: React.FC = memo(() => {
         }
         setRecord(pr);
         setAppointments(appts || []);
+
+        // Pré-remplir les rappels depuis les RDV existants (stockage local)
+        try {
+          const key = `reminders_${user.id}`;
+          const existingRaw = localStorage.getItem(key);
+          const existing = existingRaw ? JSON.parse(existingRaw) : [];
+          const existingHashes = new Set(existing.map((r: any) => `${r.type}-${r.title}-${r.dateTimeIso}`));
+          const toAdd: any[] = [];
+          (appts || []).forEach(a => {
+            const iso = new Date(a.date).toISOString();
+            const title = `RDV: ${a.type}`;
+            const hash = `appointment-${title}-${iso}`;
+            if (!existingHashes.has(hash)) {
+              toAdd.push({ id: `${Date.now()}_${a.id}`, title, type: 'appointment', dateTimeIso: iso, repeatDaily: false, notes: a.notes || undefined, done: false });
+            }
+          });
+          if (toAdd.length > 0) {
+            const merged = [...existing, ...toAdd].sort((a: any, b: any) => new Date(a.dateTimeIso).getTime() - new Date(b.dateTimeIso).getTime());
+            localStorage.setItem(key, JSON.stringify(merged));
+          }
+        } catch (e) { /* ignore */ }
       } catch (e) {
         console.error('Erreur chargement données grossesse:', e);
       } finally {
@@ -246,6 +271,24 @@ const PregnancyDashboardPage: React.FC = memo(() => {
       setAppointments(prev => [...prev, created]);
       setShowApptModal(false);
       show('Rendez-vous enregistré', 'success');
+
+      // Créer un rappel local automatiquement pour ce rendez-vous
+      try {
+        const key = `reminders_${user.id}`;
+        const existingRaw = localStorage.getItem(key);
+        const existing = existingRaw ? JSON.parse(existingRaw) : [];
+        const item = {
+          id: `${Date.now()}_${created.id}`,
+          title: `RDV: ${created.type}`,
+          type: 'appointment',
+          dateTimeIso: created.date,
+          repeatDaily: false,
+          notes: created.notes || undefined,
+          done: false
+        };
+        const merged = [...existing, item].sort((a: any, b: any) => new Date(a.dateTimeIso).getTime() - new Date(b.dateTimeIso).getTime());
+        localStorage.setItem(key, JSON.stringify(merged));
+      } catch {}
     } catch (e) {
       console.error('Erreur sauvegarde RDV:', e);
       show('Échec enregistrement du rendez-vous', 'error');
@@ -470,6 +513,24 @@ const PregnancyDashboardPage: React.FC = memo(() => {
               <div className="text-3xl mb-2">⏰</div>
               <div className="text-sm font-medium text-gray-900">Rappels</div>
               <div className="text-xs text-gray-500 text-center">Programmez vos rappels</div>
+            </button>
+
+            <button
+              onClick={() => setShowContractionTracker(true)}
+              className="flex flex-col items-center p-4 rounded-xl bg-white hover:bg-gray-50 transition-colors"
+            >
+              <div className="text-3xl mb-2">⏱️</div>
+              <div className="text-sm font-medium text-gray-900">Contractions</div>
+              <div className="text-xs text-gray-500 text-center">Chronométrez et suivez</div>
+            </button>
+
+            <button
+              onClick={() => setShowMoodTracker(true)}
+              className="flex flex-col items-center p-4 rounded-xl bg-white hover:bg-gray-50 transition-colors"
+            >
+              <div className="text-3xl mb-2">📝</div>
+              <div className="text-sm font-medium text-gray-900">Journal d'Humeur</div>
+              <div className="text-xs text-gray-500 text-center">Notez votre ressenti</div>
             </button>
           </div>
         </Card>
@@ -705,6 +766,20 @@ const PregnancyDashboardPage: React.FC = memo(() => {
         <WeightTracker
           userId={user.id}
           onClose={() => setShowWeightTracker(false)}
+        />
+      )}
+
+      {showContractionTracker && user && (
+        <ContractionTracker
+          userId={user.id}
+          onClose={() => setShowContractionTracker(false)}
+        />
+      )}
+
+      {showMoodTracker && user && (
+        <MoodTracker
+          userId={user.id}
+          onClose={() => setShowMoodTracker(false)}
         />
       )}
 
