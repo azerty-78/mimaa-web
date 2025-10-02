@@ -20,6 +20,7 @@ const SignUpPage = lazy(() => import('../pages/SignUpPage'));
 const AICoachChatPage = lazy(() => import('../pages/AICoachChatPage'));
 const DoctorChatPage = lazy(() => import('../pages/DoctorChatPage'));
 const CommunityChatPage = lazy(() => import('../pages/CommunityChatPage'));
+const NotificationsPage = lazy(() => import('../pages/NotificationsPage'));
 
 const MainLayout: React.FC = memo(() => {
   const { activeTab, navigateTo, navigateToSignIn } = useNavigation();
@@ -133,18 +134,21 @@ const MainLayout: React.FC = memo(() => {
           </Suspense>
         );
       case 'chat-ai-coach':
+      case 'ai-coach-chat':
         return (
           <Suspense fallback={<LoadingSpinner />}>
             <AICoachChatPage />
           </Suspense>
         );
       case 'chat-doctor':
+      case 'doctor-chat':
         return (
           <Suspense fallback={<LoadingSpinner />}>
             <DoctorChatPage />
           </Suspense>
         );
       case 'chat-community':
+      case 'community-chat':
         return (
           <Suspense fallback={<LoadingSpinner />}>
             <CommunityChatPage />
@@ -154,6 +158,18 @@ const MainLayout: React.FC = memo(() => {
         return (
           <Suspense fallback={<LoadingSpinner />}>
             <PregnancyDashboardPage />
+          </Suspense>
+        );
+      case 'appointments':
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <PregnancyDashboardPage />
+          </Suspense>
+        );
+      case 'notifications':
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <NotificationsPage />
           </Suspense>
         );
       default:
