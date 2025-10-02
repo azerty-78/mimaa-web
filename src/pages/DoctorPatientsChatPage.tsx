@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ArrowBack, Send, People, Phone, VideoCall, MoreVert, Search } from '@mui/icons-material';
 import { useNavigation } from '../contexts/NavigationContext';
 import { useAuth } from '../hooks/useAuth';
+import { userApi, doctorPatientApi, pregnancyApi } from '../services/api';
 
 interface Patient {
   id: string;
@@ -12,6 +13,8 @@ interface Patient {
   unreadCount: number;
   status: 'online' | 'offline';
   avatar?: string;
+  email?: string;
+  phone?: string;
 }
 
 interface Message {
@@ -31,47 +34,9 @@ const DoctorPatientsChatPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [newMessage, setNewMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Liste des patients
-  const patients: Patient[] = [
-    {
-      id: '1',
-      name: 'Marie Hélène',
-      pregnancyWeek: 24,
-      lastMessage: 'J\'ai des nausées matinales, est-ce normal ?',
-      lastMessageTime: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      unreadCount: 2,
-      status: 'online'
-    },
-    {
-      id: '2',
-      name: 'Fatou K.',
-      pregnancyWeek: 18,
-      lastMessage: 'Merci pour vos conseils sur l\'alimentation',
-      lastMessageTime: new Date(Date.now() - 4 * 60 * 60 * 1000),
-      unreadCount: 0,
-      status: 'offline'
-    },
-    {
-      id: '3',
-      name: 'Amina T.',
-      pregnancyWeek: 32,
-      lastMessage: 'Mes résultats d\'analyses sont-ils normaux ?',
-      lastMessageTime: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-      unreadCount: 1,
-      status: 'online'
-    },
-    {
-      id: '4',
-      name: 'Sarah M.',
-      pregnancyWeek: 12,
-      lastMessage: 'Rendez-vous confirmé pour demain',
-      lastMessageTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      unreadCount: 0,
-      status: 'offline'
-    }
-  ];
 
   // Messages simulés
   const [messages, setMessages] = useState<Message[]>([]);
@@ -83,6 +48,57 @@ const DoctorPatientsChatPage: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Charger les patients depuis l'API
+  useEffect(() => {
+    const loadPatients = async () => {
+      if (!user?.id) return;
+      
+      try {
+        setLoading(true);
+        
+        // Récupérer les relations médecin-patient
+        const doctorPatients = await doctorPatientApi.getByDoctorId(Number(user.id));
+        
+        // Récupérer les détails des patients
+        const patientDetails = await Promise.all(
+          doctorPatients.map(async (dp) => {
+            try {
+              const patient = await userApi.getById(Number(dp.patientId));
+              const pregnancyRecord = await pregnancyApi.getByUserId(Number(dp.patientId));
+              
+              return {
+                id: patient.id.toString(),
+                name: `${patient.firstName} ${patient.lastName}`,
+                pregnancyWeek: pregnancyRecord?.currentWeek || 0,
+                lastMessage: 'Aucun message récent',
+                lastMessageTime: new Date(),
+                unreadCount: 0,
+                status: 'offline' as const,
+                email: patient.email,
+                phone: patient.phone
+              } as Patient;
+            } catch (error) {
+              console.error('Erreur lors du chargement du patient:', error);
+              return null;
+            }
+          })
+        );
+        
+        // Filtrer les patients valides
+        const validPatients = patientDetails.filter((patient): patient is Patient => patient !== null);
+        setPatients(validPatients);
+        
+      } catch (error) {
+        console.error('Erreur lors du chargement des patients:', error);
+        setPatients([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPatients();
+  }, [user?.id]);
 
   const filteredPatients = patients.filter(patient =>
     patient.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -131,7 +147,7 @@ const DoctorPatientsChatPage: React.FC = () => {
     setTimeout(() => {
       const patientResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text: generatePatientResponse(newMessage),
+        text: generatePatientResponse(),
         author: selectedPatient.name,
         timestamp: new Date(),
         isUser: false,
@@ -142,7 +158,7 @@ const DoctorPatientsChatPage: React.FC = () => {
     }, 2000);
   };
 
-  const generatePatientResponse = (doctorMessage: string): string => {
+  const generatePatientResponse = (): string => {
     const responses = [
       "Merci docteur, je vais suivre vos conseils",
       "D'accord, je comprends. Quand dois-je revenir ?",
@@ -212,7 +228,24 @@ const DoctorPatientsChatPage: React.FC = () => {
 
         {/* Liste des patients */}
         <div className="flex-1 overflow-y-auto">
-          {filteredPatients.map((patient) => (
+          {loading ? (
+            <div className="flex items-center justify-center h-32">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-2"></div>
+                <p className="text-sm text-gray-500">Chargement des patients...</p>
+              </div>
+            </div>
+          ) : filteredPatients.length === 0 ? (
+            <div className="flex items-center justify-center h-32">
+              <div className="text-center">
+                <People className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                <p className="text-sm text-gray-500">
+                  {searchQuery ? 'Aucun patient trouvé' : 'Aucun patient assigné'}
+                </p>
+              </div>
+            </div>
+          ) : (
+            filteredPatients.map((patient) => (
             <button
               key={patient.id}
               onClick={() => handlePatientSelect(patient)}
@@ -238,7 +271,16 @@ const DoctorPatientsChatPage: React.FC = () => {
                   </div>
                   <p className="text-sm text-gray-600 truncate mt-1">{patient.lastMessage}</p>
                   <div className="flex items-center justify-between mt-1">
-                    <span className="text-xs text-gray-500">Semaine {patient.pregnancyWeek}</span>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs text-gray-500">
+                        {patient.pregnancyWeek > 0 ? `Semaine ${patient.pregnancyWeek}` : 'Pas de grossesse enregistrée'}
+                      </span>
+                      {patient.email && (
+                        <span className="text-xs text-blue-500 truncate max-w-20" title={patient.email}>
+                          {patient.email}
+                        </span>
+                      )}
+                    </div>
                     {patient.unreadCount > 0 && (
                       <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
                         {patient.unreadCount}
@@ -248,7 +290,8 @@ const DoctorPatientsChatPage: React.FC = () => {
                 </div>
               </div>
             </button>
-          ))}
+            ))
+          )}
         </div>
       </div>
 
@@ -267,7 +310,11 @@ const DoctorPatientsChatPage: React.FC = () => {
                   </div>
                   <div>
                     <h2 className="font-semibold text-gray-900">{selectedPatient.name}</h2>
-                    <p className="text-xs text-gray-500">Semaine {selectedPatient.pregnancyWeek} • {selectedPatient.status === 'online' ? 'En ligne' : 'Hors ligne'}</p>
+                    <p className="text-xs text-gray-500">
+                      {selectedPatient.pregnancyWeek > 0 ? `Semaine ${selectedPatient.pregnancyWeek}` : 'Pas de grossesse enregistrée'} • 
+                      {selectedPatient.status === 'online' ? 'En ligne' : 'Hors ligne'}
+                      {selectedPatient.email && ` • ${selectedPatient.email}`}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
