@@ -193,34 +193,34 @@ const DoctorPatientsChatPage: React.FC = () => {
   };
 
   return (
-    <div className="w-full h-full flex bg-white">
+    <div className="w-full h-full flex flex-col lg:flex-row bg-white">
       {/* Liste des patients */}
-      <div className="w-1/3 border-r border-gray-200 flex flex-col">
+      <div className="w-full lg:w-1/3 border-r-0 lg:border-r border-b lg:border-b-0 border-gray-200 flex flex-col h-1/2 lg:h-full">
         {/* Header */}
-        <div className="bg-green-600 text-white px-4 py-3">
-          <div className="flex items-center space-x-3">
+        <div className="bg-green-600 text-white px-3 sm:px-4 py-3 flex-shrink-0">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             <button
               onClick={() => navigateTo('community')}
-              className="p-2 hover:bg-green-700 rounded-full transition-colors"
+              className="p-1.5 sm:p-2 hover:bg-green-700 rounded-full transition-colors"
             >
-              <ArrowBack className="w-5 h-5" />
+              <ArrowBack className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
-            <div>
-              <h1 className="font-semibold">Mes Patients</h1>
-              <p className="text-xs text-green-100">{patients.length} patientes</p>
+            <div className="min-w-0 flex-1">
+              <h1 className="font-semibold text-sm sm:text-base truncate">Mes Patients</h1>
+              <p className="text-xs text-green-100">{patients.length} patiente{patients.length > 1 ? 's' : ''}</p>
             </div>
           </div>
         </div>
 
         {/* Recherche */}
-        <div className="p-4 border-b border-gray-200">
+        <div className="p-3 sm:p-4 border-b border-gray-200 flex-shrink-0">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Rechercher une patiente..."
+              placeholder="Rechercher..."
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
             />
           </div>
@@ -249,40 +249,40 @@ const DoctorPatientsChatPage: React.FC = () => {
             <button
               key={patient.id}
               onClick={() => handlePatientSelect(patient)}
-              className={`w-full p-4 text-left border-b border-gray-100 hover:bg-gray-50 transition-colors ${
+              className={`w-full p-3 sm:p-4 text-left border-b border-gray-100 hover:bg-gray-50 transition-colors ${
                 selectedPatient?.id === patient.id ? 'bg-green-50 border-l-4 border-l-green-500' : ''
               }`}
             >
-              <div className="flex items-center space-x-3">
-                <div className="relative">
-                  <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                    <span className="text-sm font-semibold text-gray-600">
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <div className="relative flex-shrink-0">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                    <span className="text-xs sm:text-sm font-semibold text-gray-600">
                       {getInitials(patient.name)}
                     </span>
                   </div>
                   {patient.status === 'online' && (
-                    <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                    <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 rounded-full border-2 border-white"></div>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-gray-900 truncate">{patient.name}</h3>
-                    <span className="text-xs text-gray-500">{formatTime(patient.lastMessageTime)}</span>
+                    <h3 className="font-semibold text-gray-900 truncate text-sm sm:text-base">{patient.name}</h3>
+                    <span className="text-xs text-gray-500 flex-shrink-0 ml-2">{formatTime(patient.lastMessageTime)}</span>
                   </div>
-                  <p className="text-sm text-gray-600 truncate mt-1">{patient.lastMessage}</p>
+                  <p className="text-xs sm:text-sm text-gray-600 truncate mt-1">{patient.lastMessage}</p>
                   <div className="flex items-center justify-between mt-1">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xs text-gray-500">
-                        {patient.pregnancyWeek > 0 ? `Semaine ${patient.pregnancyWeek}` : 'Pas de grossesse enregistrée'}
+                    <div className="flex items-center space-x-1 sm:space-x-2 min-w-0">
+                      <span className="text-xs text-gray-500 truncate">
+                        {patient.pregnancyWeek > 0 ? `S${patient.pregnancyWeek}` : 'Pas de grossesse'}
                       </span>
                       {patient.email && (
-                        <span className="text-xs text-blue-500 truncate max-w-20" title={patient.email}>
+                        <span className="text-xs text-blue-500 truncate max-w-16 sm:max-w-20 hidden sm:block" title={patient.email}>
                           {patient.email}
                         </span>
                       )}
                     </div>
                     {patient.unreadCount > 0 && (
-                      <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                      <span className="bg-red-500 text-white text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full flex-shrink-0">
                         {patient.unreadCount}
                       </span>
                     )}
@@ -296,67 +296,69 @@ const DoctorPatientsChatPage: React.FC = () => {
       </div>
 
       {/* Zone de chat */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col h-1/2 lg:h-full">
         {selectedPatient ? (
           <>
             {/* Header du chat */}
-            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+            <div className="bg-gray-50 px-3 sm:px-4 py-3 border-b border-gray-200 flex-shrink-0">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
                     <span className="text-xs font-semibold text-gray-600">
                       {getInitials(selectedPatient.name)}
                     </span>
                   </div>
-                  <div>
-                    <h2 className="font-semibold text-gray-900">{selectedPatient.name}</h2>
-                    <p className="text-xs text-gray-500">
-                      {selectedPatient.pregnancyWeek > 0 ? `Semaine ${selectedPatient.pregnancyWeek}` : 'Pas de grossesse enregistrée'} • 
+                  <div className="min-w-0 flex-1">
+                    <h2 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{selectedPatient.name}</h2>
+                    <p className="text-xs text-gray-500 truncate">
+                      {selectedPatient.pregnancyWeek > 0 ? `S${selectedPatient.pregnancyWeek}` : 'Pas de grossesse'} • 
                       {selectedPatient.status === 'online' ? 'En ligne' : 'Hors ligne'}
-                      {selectedPatient.email && ` • ${selectedPatient.email}`}
+                      {selectedPatient.email && (
+                        <span className="hidden sm:inline"> • {selectedPatient.email}</span>
+                      )}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <button className="p-2 text-gray-500 hover:text-gray-700 transition-colors">
-                    <Phone className="w-4 h-4" />
+                <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
+                  <button className="p-1.5 sm:p-2 text-gray-500 hover:text-gray-700 transition-colors">
+                    <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </button>
-                  <button className="p-2 text-gray-500 hover:text-gray-700 transition-colors">
-                    <VideoCall className="w-4 h-4" />
+                  <button className="p-1.5 sm:p-2 text-gray-500 hover:text-gray-700 transition-colors">
+                    <VideoCall className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </button>
-                  <button className="p-2 text-gray-500 hover:text-gray-700 transition-colors">
-                    <MoreVert className="w-4 h-4" />
+                  <button className="p-1.5 sm:p-2 text-gray-500 hover:text-gray-700 transition-colors">
+                    <MoreVert className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </button>
                 </div>
               </div>
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4">
               {messages.map((message) => (
                 <div
                   key={message.id}
                   className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div className={`flex space-x-2 max-w-xs lg:max-w-md ${message.isUser ? 'flex-row-reverse space-x-reverse' : ''}`}>
-                    <div className="w-6 h-6 rounded-full flex items-center justify-center bg-gray-200 flex-shrink-0">
+                  <div className={`flex space-x-2 max-w-xs sm:max-w-sm lg:max-w-md ${message.isUser ? 'flex-row-reverse space-x-reverse' : ''}`}>
+                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center bg-gray-200 flex-shrink-0">
                       <span className="text-xs font-semibold text-gray-600">
                         {getInitials(message.author)}
                       </span>
                     </div>
                     
-                    <div className="flex flex-col">
+                    <div className="flex flex-col min-w-0">
                       {!message.isUser && (
-                        <p className="text-xs text-gray-500 mb-1">{message.author}</p>
+                        <p className="text-xs text-gray-500 mb-1 truncate">{message.author}</p>
                       )}
                       <div
-                        className={`px-3 py-2 rounded-2xl ${
+                        className={`px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-2xl ${
                           message.isUser
                             ? 'bg-green-600 text-white'
                             : 'bg-gray-100 text-gray-800'
                         }`}
                       >
-                        <p className="text-sm">{message.text}</p>
+                        <p className="text-xs sm:text-sm break-words">{message.text}</p>
                       </div>
                       <p className="text-xs text-gray-500 mt-1">
                         {formatTime(message.timestamp)}
@@ -370,16 +372,16 @@ const DoctorPatientsChatPage: React.FC = () => {
               {isTyping && (
                 <div className="flex justify-start">
                   <div className="flex space-x-2">
-                    <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
+                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gray-200 flex items-center justify-center">
                       <span className="text-xs font-semibold text-gray-600">
                         {getInitials(selectedPatient.name)}
                       </span>
                     </div>
-                    <div className="bg-gray-100 text-gray-800 px-3 py-2 rounded-2xl">
+                    <div className="bg-gray-100 text-gray-800 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-2xl">
                       <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                        <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                       </div>
                     </div>
                   </div>
@@ -389,7 +391,7 @@ const DoctorPatientsChatPage: React.FC = () => {
             </div>
 
             {/* Input */}
-            <div className="border-t border-gray-200 p-4">
+            <div className="border-t border-gray-200 p-3 sm:p-4 flex-shrink-0">
               <div className="flex items-center space-x-2">
                 <input
                   type="text"
@@ -397,24 +399,24 @@ const DoctorPatientsChatPage: React.FC = () => {
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Tapez votre message..."
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="flex-1 px-3 sm:px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
                 />
                 <button
                   onClick={handleSendMessage}
                   disabled={!newMessage.trim()}
-                  className="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="w-8 h-8 sm:w-10 sm:h-10 bg-green-600 text-white rounded-full flex items-center justify-center hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
                 >
-                  <Send className="w-5 h-5" />
+                  <Send className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               </div>
             </div>
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center bg-gray-50">
-            <div className="text-center">
-              <People className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-600 mb-2">Sélectionnez une patiente</h3>
-              <p className="text-gray-500">Choisissez une patiente dans la liste pour commencer la conversation</p>
+            <div className="text-center px-4">
+              <People className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 mx-auto mb-3 sm:mb-4" />
+              <h3 className="text-base sm:text-lg font-semibold text-gray-600 mb-2">Sélectionnez une patiente</h3>
+              <p className="text-sm sm:text-base text-gray-500">Choisissez une patiente dans la liste pour commencer la conversation</p>
             </div>
           </div>
         )}
